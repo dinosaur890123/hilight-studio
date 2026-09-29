@@ -29,10 +29,15 @@ enum class Pattern(
      * [shortLabelRes], which falls back to the full name.
      */
     @StringRes private val narrowLabelRes: Int? = null,
+    /**
+     * True for the looks that blend two colours ([Ambient.color] and [Ambient.secondColor]). Those
+     * send both to the renderer as "colors" and show a second colour picker in every editor.
+     */
+    val usesSecondColor: Boolean = false,
 ) {
     OFF("off", R.string.pattern_off, usesSpeed = false),
     SOLID("solid", R.string.pattern_solid, usesSpeed = false),
-    GRADIENT("gradient", R.string.pattern_gradient, usesSpeed = false),
+    GRADIENT("gradient", R.string.pattern_gradient, usesSpeed = false, usesSecondColor = true),
     BREATHE("breathe", R.string.pattern_breathe, cycleMeaningRes = R.string.cycle_breathe),
     BLINK("blink", R.string.pattern_blink, cycleMeaningRes = R.string.cycle_blink),
     PULSE("pulse", R.string.pattern_pulse, cycleMeaningRes = R.string.cycle_pulse),
@@ -50,6 +55,20 @@ enum class Pattern(
     RADAR("radar", R.string.pattern_radar, cycleMeaningRes = R.string.cycle_radar),
     CONVERGE("converge", R.string.pattern_converge, cycleMeaningRes = R.string.cycle_converge),
     GLITCH("glitch", R.string.pattern_glitch, cycleMeaningRes = R.string.cycle_glitch),
+    AURORA(
+        "aurora", R.string.pattern_aurora, cycleMeaningRes = R.string.cycle_aurora,
+        usesSecondColor = true,
+    ),
+    CROSSFADE(
+        "crossfade", R.string.pattern_crossfade, cycleMeaningRes = R.string.cycle_crossfade,
+        narrowLabelRes = R.string.pattern_crossfade_short, usesSecondColor = true,
+    ),
+    MARQUEE(
+        "marquee", R.string.pattern_marquee, cycleMeaningRes = R.string.cycle_marquee,
+        usesSecondColor = true,
+    ),
+    TWINKLE("twinkle", R.string.pattern_twinkle, cycleMeaningRes = R.string.cycle_twinkle),
+    CANDLE("candle", R.string.pattern_candle, cycleMeaningRes = R.string.cycle_candle),
     RANDOM("random", R.string.pattern_random, usesSpeed = false),
     CUSTOM("custom", R.string.pattern_custom, usesSpeed = false);
 
@@ -105,11 +124,10 @@ data class Ambient(
         put("rotateMs", rotateMs)
         when (pattern) {
             Pattern.CUSTOM -> put("colors", JSONArray().also { a -> perLed.forEach { a.put(it.toUInt().toLong()) } })
-            Pattern.GRADIENT -> put(
+            else -> if (pattern.usesSecondColor) put(
                 "colors",
                 JSONArray().put(color.toUInt().toLong()).put(secondColor.toUInt().toLong())
-            )
-            else -> put("color", color.toUInt().toLong())
+            ) else put("color", color.toUInt().toLong())
         }
     }
 
@@ -329,7 +347,7 @@ data class PrivacyRule(
         put("activity", activity.key)
         put("pkg", pkg)
         put("pattern", pattern.key)
-        if (pattern == Pattern.GRADIENT) {
+        if (pattern.usesSecondColor) {
             put(
                 "colors",
                 JSONArray()

@@ -168,6 +168,53 @@ object Renderer {
                 }
             }
 
+            Pattern.AURORA -> {
+                val b2 = cfg.secondColor
+                val phase = (t % speed) / speed.toDouble()
+                for (i in 0 until n) {
+                    val m = (1 + sin(2 * PI * (phase + i.toDouble() / n))) / 2
+                    val s = (1 + sin(2 * PI * 2 * phase + i * 1.3)) / 2
+                    out[i] = scale(mix(base, b2, m), 0.35 + 0.65 * s)
+                }
+            }
+
+            Pattern.CROSSFADE -> {
+                val phase = (t % speed) / speed.toDouble()
+                val c = mix(base, cfg.secondColor, (1 - cos(phase * 2 * PI)) / 2)
+                for (i in 0 until n) out[i] = c
+            }
+
+            Pattern.MARQUEE -> {
+                val phase = (t % speed) / speed.toDouble()
+                for (i in 0 until n) {
+                    val m = (0.5 + 1.2 * cos(2 * PI * (i.toDouble() / MARQUEE_BAND - phase))).coerceIn(0.0, 1.0)
+                    out[i] = mix(cfg.secondColor, base, m)
+                }
+            }
+
+            Pattern.TWINKLE -> {
+                for (i in 0 until n) {
+                    val period = max(120L, speed * (5 + (i * 3) % 4) / 6)
+                    val offset = speed * ((i * 5) % 8) / 8
+                    val ledPhase = ((t + offset) % period) / period.toDouble()
+                    val k = if (ledPhase < 0.1) ledPhase / 0.1 else exp(-(ledPhase - 0.1) * 6.0)
+                    val c = scale(base, 0.04 + 0.96 * k)
+                    out[i] = if (k > 0.8) mix(c, 0xFFFFFFFF.toInt(), (k - 0.8) / 0.2 * 0.6) else c
+                }
+            }
+
+            Pattern.CANDLE -> {
+                val seg = max(40L, speed / 6)
+                val step = t / seg
+                val f = (t % seg) / seg.toDouble()
+                val ease = f * f * (3 - 2 * f)
+                val shared = noise(step, n) + (noise(step + 1, n) - noise(step, n)) * ease
+                for (i in 0 until n) {
+                    val own = noise(step, i) + (noise(step + 1, i) - noise(step, i)) * ease
+                    out[i] = scale(base, 0.4 + 0.6 * (0.65 * shared + 0.35 * own))
+                }
+            }
+
             Pattern.RANDOM -> {
                 // deterministic stand-in so the preview animates without flickering randomly
                 val step = t / max(120, cfg.randomIntervalMs).toLong()
@@ -183,6 +230,18 @@ object Renderer {
         return out
     }
 
+    /** Mirrors the renderer's marquee band width. */
+    private const val MARQUEE_BAND = 4
+
+    /** Bit-for-bit mirror of the renderer's value noise, so the preview flickers like the LEDs. */
+    internal fun noise(step: Long, lane: Int): Double {
+        var x = step * 0x2545F4914F6CDD1DL + lane.toLong() * 0x5851F42D4C957F2DL
+        x = x xor (x ushr 31)
+        x *= 0x27BB2EE687B0B0FDL
+        x = x xor (x ushr 29)
+        return (x ushr 11).toDouble() / (1L shl 53).toDouble()
+    }
+
     fun scale(color: Int, k: Double): Int {
         val kk = k.coerceIn(0.0, 1.0)
         val r = (((color shr 16) and 0xFF) * kk).toInt()
@@ -191,7 +250,7 @@ object Renderer {
         return (0xFF shl 24) or (r shl 16) or (g shl 8) or b
     }
 
-    private fun mix(a: Int, b: Int, k: Double): Int {
+    fun mix(a: Int, b: Int, k: Double): Int {
         val kk = k.coerceIn(0.0, 1.0)
         val r = (((a shr 16) and 0xFF) * (1 - kk) + ((b shr 16) and 0xFF) * kk).toInt()
         val g = (((a shr 8) and 0xFF) * (1 - kk) + ((b shr 8) and 0xFF) * kk).toInt()

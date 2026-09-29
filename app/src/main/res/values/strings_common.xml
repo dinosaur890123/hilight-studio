@@ -39,6 +39,13 @@
     <string name="pattern_radar">Radar</string>
     <string name="pattern_converge">Converge</string>
     <string name="pattern_glitch">Glitch</string>
+    <string name="pattern_aurora">Aurora</string>
+    <string name="pattern_crossfade">Crossfade</string>
+    <!-- The narrow form of "Crossfade", for tiles and fill buttons -->
+    <string name="pattern_crossfade_short">Fade</string>
+    <string name="pattern_marquee">Marquee</string>
+    <string name="pattern_twinkle">Twinkle</string>
+    <string name="pattern_candle">Candle</string>
     <string name="pattern_random">Random colours</string>
     <string name="pattern_custom">Per-LED custom</string>
 
@@ -57,6 +64,11 @@
     <string name="cycle_radar">One smooth rotational radar sweep around the array.</string>
     <string name="cycle_converge">Two beams collide at the centre and burst outwards.</string>
     <string name="cycle_glitch">Erratic digital micro-sparks and cybernetic flickers.</string>
+    <string name="cycle_aurora">Both colours drift once across the array, shimmering twice on the way.</string>
+    <string name="cycle_crossfade">One fade from the first colour to the second, and back.</string>
+    <string name="cycle_marquee">The coloured bands slide along by one pair.</string>
+    <string name="cycle_twinkle">About one sparkle per LED, each on its own rhythm.</string>
+    <string name="cycle_candle">Six flickers of the flame. Shorter is more restless.</string>
 
     <!-- Why the array is being held dark -->
     <string name="suppression_quiet_hours">Quiet hours</string>

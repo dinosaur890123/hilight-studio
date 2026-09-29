@@ -19,14 +19,15 @@ Control the eight-LED HiLight array on Pixel 11 Pro devices.
 
 ## Features
 
-- Solid colours and animated patterns across all eight LEDs
+- Solid colours and animated patterns across all eight LEDs, including two-colour Aurora,
+  Crossfade and Marquee effects, Twinkle and Candle
 - Per-app rules for foreground use and notifications
 - Optional global or per-notification **face-down only** rules, with a first-use caution and live
   position status
 - Customisable microphone and camera activity rules, with any built-in animation and colour, for any
   app or one selected app
 - Per-contact rules: a colour for one person or one chat, picked from the chats HiLight has seen
-- Saved presets with import and export
+- Featured looks, a Surprise me button, and saved presets you can rename, reorder, share, import and export
 - Wallpaper-derived colours and a Quick Settings tile
 - Quiet hours, Do Not Disturb, Battery Saver, and low-battery controls
 - English and Japanese, selectable per app from Android's own language settings

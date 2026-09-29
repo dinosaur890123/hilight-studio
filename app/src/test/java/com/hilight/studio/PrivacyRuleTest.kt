@@ -90,7 +90,7 @@ class PrivacyRuleTest {
             assertEquals(13_000, renderer.getInt("cooldownMs"))
             assertEquals(2_345, renderer.getInt("speedMs"))
             assertEquals(0.42, renderer.getDouble("brightness"), 0.0001)
-            if (pattern == Pattern.GRADIENT) {
+            if (pattern.usesSecondColor) {
                 val colours = renderer.getJSONArray("colors")
                 assertEquals(0xFF123456L, colours.getLong(0))
                 assertEquals(0xFFABCDEFL, colours.getLong(1))

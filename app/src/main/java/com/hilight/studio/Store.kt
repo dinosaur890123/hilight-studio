@@ -1015,22 +1015,55 @@ class Store private constructor(private val app: Context) {
     fun savePreset(name: String) {
         // The caller supplies the fallback name: it is user-visible text, and only a composable can
         // resolve it from resources. An empty name arriving here would be a bug in that caller.
-        val clean = name.trim()
+        val clean = Looks.cleanName(name)
         _presets.value = _presets.value.filterNot { it.name == clean } + Preset(clean, _ambient.value)
         persistPresets()
     }
 
     fun applyPreset(preset: Preset) = setAmbient(preset.ambient)
 
+    /** Applies a built-in look, keeping the user's brightness: a starting point should not be brighter. */
+    fun applyFeaturedLook(look: FeaturedLook) =
+        setAmbient(look.ambient.copy(brightness = _ambient.value.brightness))
+
+    /** Replaces the always-on look with a random, harmonious one. */
+    fun surpriseLook() = setAmbient(Looks.surprise(_ambient.value))
+
     fun deletePreset(preset: Preset) {
         _presets.value = _presets.value.filterNot { it.name == preset.name }
         persistPresets()
     }
 
+    /**
+     * Renames [preset] in place, keeping its position. Returns false when the new name is empty or
+     * already belongs to another preset, because names are the presets' identity.
+     */
+    fun renamePreset(preset: Preset, newName: String): Boolean {
+        val renamed = PresetOps.rename(_presets.value, preset, newName) ?: return false
+        _presets.value = renamed
+        persistPresets()
+        return true
+    }
+
+    /** Overwrites [preset] with the current always-on look, keeping its name and position. */
+    fun updatePreset(preset: Preset) {
+        _presets.value = PresetOps.update(_presets.value, preset, _ambient.value)
+        persistPresets()
+    }
+
+    /** Moves [preset] one place towards the front (-1) or back (+1) of the list. */
+    fun movePreset(preset: Preset, delta: Int) {
+        _presets.value = PresetOps.move(_presets.value, preset, delta)
+        persistPresets()
+    }
+
     /** All presets as a JSON document, for sharing or backup. */
-    fun exportPresets(): String = JSONObject().apply {
+    fun exportPresets(): String = exportPresets(_presets.value)
+
+    /** Selected presets in the same document shape, so one look can be shared on its own. */
+    fun exportPresets(presets: List<Preset>): String = JSONObject().apply {
         put("v", 1)
-        put("presets", JSONArray().also { a -> _presets.value.forEach { a.put(it.toJson()) } })
+        put("presets", JSONArray().also { a -> presets.forEach { a.put(it.toJson()) } })
     }.toString(2)
 
     /** Merges presets from an exported document. Returns how many were added, or null if unreadable. */

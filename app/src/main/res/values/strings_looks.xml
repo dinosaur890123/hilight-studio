@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Featured looks, "Surprise me", colour harmony and preset management on the Style tab.
+
+    Look names are short labels under a small preview strip, so keep them to one or two words.
+    Format strings use positional arguments (%1$s) because Japanese does not keep the English order.
+-->
+<resources>
+
+    <!-- The card of built-in looks -->
+    <string name="style_featured">Featured looks</string>
+    <string name="style_featured_hint">Tap one to try it. Your brightness stays where you set it.</string>
+    <!-- Picks a random effect with a pair of colours that go together -->
+    <string name="style_surprise">Surprise me</string>
+
+    <!-- Names of the built-in looks -->
+    <string name="look_aurora">Aurora</string>
+    <string name="look_candlelight">Candlelight</string>
+    <string name="look_starfield">Starfield</string>
+    <string name="look_sunset">Sunset</string>
+    <string name="look_candy">Candy stripe</string>
+    <string name="look_ocean">Ocean</string>
+    <string name="look_ember">Ember</string>
+    <string name="look_calm">Calm</string>
+    <string name="look_prism">Prism</string>
+
+    <!-- The two colours of a two-colour effect -->
+    <string name="style_first_colour">First colour</string>
+    <string name="style_second_colour">Second colour</string>
+    <!-- Buttons that derive the second colour from the first -->
+    <string name="harmony_title">Match the second colour</string>
+    <string name="harmony_complement">Opposite</string>
+    <string name="harmony_analogous">Nearby</string>
+    <string name="harmony_triad">Triad</string>
+    <string name="harmony_swap">Swap</string>
+    <string name="style_candle_hint">Warm ambers and oranges look most like a real flame.</string>
+
+    <!-- Managing one saved preset. %1$s is the preset's name. -->
+    <string name="style_preset_manage">Manage %1$s</string>
+    <string name="style_preset_active">%1$s, in use</string>
+    <string name="style_preset_apply">Apply</string>
+    <string name="style_preset_update">Save current look here</string>
+    <string name="style_preset_updated">Updated %1$s</string>
+    <string name="style_preset_rename">Rename</string>
+    <string name="style_preset_rename_taken">That name is empty or already used</string>
+    <string name="style_preset_move_earlier">Move left</string>
+    <string name="style_preset_move_later">Move right</string>
+    <string name="style_preset_share">Share</string>
+    <string name="style_preset_delete_confirm">Delete %1$s? This cannot be undone.</string>
+
+</resources>

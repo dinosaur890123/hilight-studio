@@ -2,7 +2,6 @@
 <resources>
     <string name="rules_use_saved_look">保存済みプリセットを使用</string>
     <string name="rules_saved_look_empty">まずスタイルタブでスタイルを保存してから、ここで選択してください。</string>
-    <string name="rules_gradient_second_colour">グラデーションの2色目</string>
     <string name="rules_custom_saved_look">LEDごとの色には、保存済みプリセットの色を使用します。</string>
     <string name="rules_ignore_silent">サイレント通知を無視</string>
     <string name="rules_ignore_silent_hint">Androidがサイレントまたは重要度が低いと判定した通知をスキップします。</string>

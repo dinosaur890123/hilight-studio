@@ -2,6 +2,22 @@
 
 All notable changes to HiLight Studio are documented here.
 
+## Unreleased
+
+- Added five colour effects: **Aurora** and **Crossfade** blend two colours, **Marquee** slides
+  two-colour bands along the array, **Twinkle** sparkles each LED on its own rhythm, and **Candle**
+  flickers like a flame. The preview matches the LEDs frame for frame. Renderer implementation
+  revision is now 9, so older helpers are replaced before the new effects are used.
+- Two-colour effects, including Gradient, now have one-tap colour harmonies (Opposite, Nearby, Triad)
+  and a Swap button in the Style tab and both rule editors.
+- Added **Featured looks** on the Style tab: nine built-in looks with live previews, plus
+  **Surprise me** for a random look with matching colours. Both keep the current brightness.
+  Featured looks are also offered when choosing a saved look for an app rule.
+- Presets now show their colours and which one is in use. Each preset's menu can apply, overwrite with
+  the current look, rename, reorder, share on its own, or delete it after confirmation. Deleting no
+  longer happens from a single tap on the chip.
+- Existing duration, brightness, rest and cleanup limits apply to every new effect unchanged.
+
 ## 1.0.15-rc.1 — 2026-09-20
 
 - Release candidate for GitHub, version code 17; not a confirmed fix for the KernelSU reports.

@@ -219,15 +219,18 @@ fun PrivacyRuleEditorDialog(
                     onSelect = { edited = edited.copy(pattern = it) },
                 )
                 if (edited.pattern == Pattern.GRADIENT) {
-                    ColorPicker(
+                    TwoColourEditor(
                         edited.color,
-                        { edited = edited.copy(color = it) },
-                        stringResource(R.string.style_gradient_start),
-                    )
-                    ColorPicker(
                         edited.secondColor,
-                        { edited = edited.copy(secondColor = it) },
+                        { a, b -> edited = edited.copy(color = a, secondColor = b) },
+                        stringResource(R.string.style_gradient_start),
                         stringResource(R.string.style_gradient_end),
+                    )
+                } else if (edited.pattern.usesSecondColor) {
+                    TwoColourEditor(
+                        edited.color,
+                        edited.secondColor,
+                        { a, b -> edited = edited.copy(color = a, secondColor = b) },
                     )
                 } else {
                     ColorPicker(edited.color, { edited = edited.copy(color = it) })

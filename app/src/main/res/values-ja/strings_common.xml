@@ -58,6 +58,18 @@
     <string name="pattern_converge">コンバージ</string>
     <!-- "Glitch" -->
     <string name="pattern_glitch">グリッチ</string>
+    <!-- "Aurora" -->
+    <string name="pattern_aurora">オーロラ</string>
+    <!-- "Crossfade" -->
+    <string name="pattern_crossfade">クロスフェード</string>
+    <!-- "Fade" — the narrow form of "Crossfade", for tiles and fill buttons -->
+    <string name="pattern_crossfade_short">フェード</string>
+    <!-- "Marquee" -->
+    <string name="pattern_marquee">マーキー</string>
+    <!-- "Twinkle" -->
+    <string name="pattern_twinkle">きらめき</string>
+    <!-- "Candle" -->
+    <string name="pattern_candle">キャンドル</string>
     <!-- "Random colours" -->
     <string name="pattern_random">ランダムな色</string>
     <!-- "Per-LED custom" -->
@@ -92,6 +104,16 @@
     <string name="cycle_converge">両端から光が集まって衝突し、外側へ広がります。</string>
     <!-- "Erratic digital micro-sparks and cybernetic flickers." -->
     <string name="cycle_glitch">サイバー感のある不規則なデジタル微光とスパークです。</string>
+    <!-- "Both colours drift once across the array, shimmering twice on the way." -->
+    <string name="cycle_aurora">2 色が LED アレイを 1 回流れ、その間に 2 回揺らめきます。</string>
+    <!-- "One fade from the first colour to the second, and back." -->
+    <string name="cycle_crossfade">1 色目から 2 色目へ移り、また戻るまでです。</string>
+    <!-- "The coloured bands slide along by one pair." -->
+    <string name="cycle_marquee">色の帯が 1 組分スライドします。</string>
+    <!-- "About one sparkle per LED, each on its own rhythm." -->
+    <string name="cycle_twinkle">LED ごとにおよそ 1 回きらめきます。リズムは LED ごとに異なります。</string>
+    <!-- "Six flickers of the flame. Shorter is more restless." -->
+    <string name="cycle_candle">炎が 6 回揺らめきます。短いほど落ち着きがなくなります。</string>
 
     <!-- Why the array is being held dark -->
     <!-- "Quiet hours" -->

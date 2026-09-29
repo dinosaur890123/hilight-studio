@@ -788,12 +788,12 @@ private fun RuleEditorDialog(
                     ) { r = r.copy(randomColor = it, useAppColor = if (it) false else r.useAppColor) }
                 }
                 if (!r.randomColor && r.pattern != Pattern.CUSTOM) {
-                    ColorPicker(r.color, { r = r.copy(color = it, useAppColor = false) })
-                    if (r.pattern == Pattern.GRADIENT) {
-                        Caption(stringResource(R.string.rules_gradient_second_colour))
-                        ColorPicker(r.effectiveLook().secondColor, {
-                            r = r.withLook(r.effectiveLook().copy(secondColor = it))
+                    if (r.pattern.usesSecondColor) {
+                        TwoColourEditor(r.color, r.effectiveLook().secondColor, { a, b ->
+                            r = r.withLook(r.effectiveLook(a).copy(secondColor = b)).copy(useAppColor = false)
                         })
+                    } else {
+                        ColorPicker(r.color, { r = r.copy(color = it, useAppColor = false) })
                     }
                 }
                 if (r.pattern == Pattern.CUSTOM) {
@@ -977,17 +977,32 @@ private fun RuleEditorDialog(
             },
             text = {
                 val available = presets.filter { it.ambient.pattern != Pattern.OFF }
-                if (available.isEmpty()) {
-                    Text(stringResource(R.string.rules_saved_look_empty))
-                } else {
-                    LazyColumn(Modifier.heightIn(max = 380.dp)) {
-                        items(available, key = { it.name }) { preset ->
-                            TextButton(onClick = {
-                                r = r.withLook(preset.ambient).copy(useAppColor = false)
-                                pickingPreset = false
-                            }, modifier = Modifier.fillMaxWidth()) {
-                                Text(preset.name)
-                            }
+                LazyColumn(Modifier.heightIn(max = 380.dp)) {
+                    if (available.isEmpty()) {
+                        item { Text(stringResource(R.string.rules_saved_look_empty)) }
+                    }
+                    items(available, key = { "preset:" + it.name }) { preset ->
+                        TextButton(onClick = {
+                            r = r.withLook(preset.ambient).copy(useAppColor = false)
+                            pickingPreset = false
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            SwatchDots(Looks.swatches(preset.ambient))
+                            Spacer(Modifier.width(8.dp))
+                            Text(preset.name)
+                        }
+                    }
+                    // Built-in looks keep the rule's own brightness, as they do on the Style tab.
+                    item(key = "featured") {
+                        Caption(stringResource(R.string.style_featured), Modifier.padding(top = 12.dp))
+                    }
+                    items(Looks.featured, key = { "featured:" + it.key }) { look ->
+                        TextButton(onClick = {
+                            r = r.withLook(look.ambient.copy(brightness = r.brightness)).copy(useAppColor = false)
+                            pickingPreset = false
+                        }, modifier = Modifier.fillMaxWidth()) {
+                            SwatchDots(Looks.swatches(look.ambient))
+                            Spacer(Modifier.width(8.dp))
+                            Text(stringResource(look.nameRes))
                         }
                     }
                 }

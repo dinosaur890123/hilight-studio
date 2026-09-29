@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- The card of built-in looks -->
+    <!-- "Featured looks" -->
+    <string name="style_featured">おすすめスタイル</string>
+    <!-- "Tap one to try it. Your brightness stays where you set it." -->
+    <string name="style_featured_hint">タップして試せます。明るさは設定したまま変わりません。</string>
+    <!-- "Surprise me" -->
+    <string name="style_surprise">おまかせ</string>
+
+    <!-- Names of the built-in looks -->
+    <!-- "Aurora" -->
+    <string name="look_aurora">オーロラ</string>
+    <!-- "Candlelight" -->
+    <string name="look_candlelight">キャンドルの灯り</string>
+    <!-- "Starfield" -->
+    <string name="look_starfield">星空</string>
+    <!-- "Sunset" -->
+    <string name="look_sunset">夕焼け</string>
+    <!-- "Candy stripe" -->
+    <string name="look_candy">キャンディ</string>
+    <!-- "Ocean" -->
+    <string name="look_ocean">海</string>
+    <!-- "Ember" -->
+    <string name="look_ember">残り火</string>
+    <!-- "Calm" -->
+    <string name="look_calm">穏やか</string>
+    <!-- "Prism" -->
+    <string name="look_prism">プリズム</string>
+
+    <!-- The two colours of a two-colour effect -->
+    <!-- "First colour" -->
+    <string name="style_first_colour">1 色目</string>
+    <!-- "Second colour" -->
+    <string name="style_second_colour">2 色目</string>
+    <!-- "Match the second colour" -->
+    <string name="harmony_title">2 色目を合わせる</string>
+    <!-- "Opposite" -->
+    <string name="harmony_complement">反対色</string>
+    <!-- "Nearby" -->
+    <string name="harmony_analogous">近い色</string>
+    <!-- "Triad" -->
+    <string name="harmony_triad">トライアド</string>
+    <!-- "Swap" -->
+    <string name="harmony_swap">入れ替え</string>
+    <!-- "Warm ambers and oranges look most like a real flame." -->
+    <string name="style_candle_hint">暖かいアンバーやオレンジが、本物の炎に最も近く見えます。</string>
+
+    <!-- Managing one saved preset. %1$s is the preset's name. -->
+    <!-- "Manage %1$s" -->
+    <string name="style_preset_manage">%1$s を管理</string>
+    <!-- "%1$s, in use" -->
+    <string name="style_preset_active">%1$s（使用中）</string>
+    <!-- "Apply" -->
+    <string name="style_preset_apply">適用</string>
+    <!-- "Save current look here" -->
+    <string name="style_preset_update">現在のスタイルで上書き</string>
+    <!-- "Updated %1$s" -->
+    <string name="style_preset_updated">%1$s を更新しました</string>
+    <!-- "Rename" -->
+    <string name="style_preset_rename">名前を変更</string>
+    <!-- "That name is empty or already used" -->
+    <string name="style_preset_rename_taken">名前が空か、すでに使われています</string>
+    <!-- "Move left" -->
+    <string name="style_preset_move_earlier">左へ移動</string>
+    <!-- "Move right" -->
+    <string name="style_preset_move_later">右へ移動</string>
+    <!-- "Share" -->
+    <string name="style_preset_share">共有</string>
+    <!-- "Delete %1$s? This cannot be undone." -->
+    <string name="style_preset_delete_confirm">%1$s を削除しますか？元に戻せません。</string>
+
+</resources>

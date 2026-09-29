@@ -21,12 +21,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
@@ -42,6 +47,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -49,6 +55,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,6 +69,7 @@ fun AmbientScreen(store: Store) {
     var editingLed by rememberSaveable { mutableIntStateOf(0) }
 
     PresetsCard(store)
+    FeaturedLooksCard(store)
 
     PixelCard(tone = 2) {
         SectionTitle(stringResource(R.string.style_always_on_style))
@@ -179,15 +188,21 @@ fun AmbientScreen(store: Store) {
 
                 Pattern.GRADIENT -> PixelCard {
                     SectionTitle(stringResource(R.string.pattern_gradient))
-                    ColorPicker(
+                    TwoColourEditor(
                         ambient.color,
-                        { store.setAmbient(ambient.copy(color = it)) },
-                        stringResource(R.string.style_gradient_start),
-                    )
-                    ColorPicker(
                         ambient.secondColor,
-                        { store.setAmbient(ambient.copy(secondColor = it)) },
+                        { a, b -> store.setAmbient(ambient.copy(color = a, secondColor = b)) },
+                        stringResource(R.string.style_gradient_start),
                         stringResource(R.string.style_gradient_end),
+                    )
+                }
+
+                Pattern.AURORA, Pattern.CROSSFADE, Pattern.MARQUEE -> PixelCard {
+                    SectionTitle(stringResource(R.string.style_colour))
+                    TwoColourEditor(
+                        ambient.color,
+                        ambient.secondColor,
+                        { a, b -> store.setAmbient(ambient.copy(color = a, secondColor = b)) },
                     )
                 }
 
@@ -199,6 +214,7 @@ fun AmbientScreen(store: Store) {
                 else -> PixelCard {
                     SectionTitle(stringResource(R.string.style_colour))
                     ColorPicker(ambient.color, { store.setAmbient(ambient.copy(color = it)) })
+                    if (pattern == Pattern.CANDLE) Caption(stringResource(R.string.style_candle_hint))
                 }
             }
 
@@ -234,6 +250,8 @@ fun AmbientScreen(store: Store) {
 private fun PresetsCard(store: Store) {
     val ctx = LocalContext.current
     val presets by store.presets.collectAsStateWithLifecycle()
+    val ambient by store.ambient.collectAsStateWithLifecycle()
+    var managing by remember { mutableStateOf<Preset?>(null) }
     var naming by remember { mutableStateOf(false) }
     var importing by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
@@ -252,26 +270,36 @@ private fun PresetsCard(store: Store) {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 presets.forEach { preset ->
+                    val inUse = preset.ambient == ambient
+                    val activeLabel = stringResource(R.string.style_preset_active, preset.name)
                     Row(
                         Modifier
                             .background(
-                                MaterialTheme.colorScheme.surfaceContainerHighest,
+                                if (inUse) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.surfaceContainerHighest,
                                 CircleShape,
                             )
+                            .clip(CircleShape)
                             .clickable { store.applyPreset(preset) }
-                            .padding(start = 16.dp, end = 6.dp, top = 8.dp, bottom = 8.dp),
+                            .then(if (inUse) Modifier.semantics { stateDescription = activeLabel } else Modifier)
+                            .padding(start = 12.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        Text(preset.name, style = MaterialTheme.typography.labelLarge)
+                        SwatchDots(Looks.swatches(preset.ambient))
                         Text(
-                            "✕",
+                            preset.name,
                             style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .clickable { store.deletePreset(preset) }
-                                .padding(horizontal = 6.dp),
+                            color = if (inUse) MaterialTheme.colorScheme.onPrimaryContainer
+                            else MaterialTheme.colorScheme.onSurface,
                         )
+                        IconButton(onClick = { managing = preset }, modifier = Modifier.size(36.dp)) {
+                            Icon(
+                                Icons.Rounded.MoreVert,
+                                contentDescription = stringResource(R.string.style_preset_manage, preset.name),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
                     }
                 }
             }
@@ -323,6 +351,19 @@ private fun PresetsCard(store: Store) {
         )
     }
 
+    // Follow the stored copy, so an update or a move shows in the open dialog straight away.
+    val live = managing?.let { m -> presets.firstOrNull { it.name == m.name } }
+    if (live != null) {
+        PresetManageDialog(
+            store = store,
+            preset = live,
+            index = presets.indexOf(live),
+            count = presets.size,
+            onRenamed = { managing = it },
+            onDismiss = { managing = null },
+        )
+    }
+
     if (importing) {
         AlertDialog(
             onDismissRequest = { importing = false },
@@ -355,6 +396,140 @@ private fun PresetsCard(store: Store) {
             },
             dismissButton = {
                 TextButton(onClick = { importing = false }) {
+                    ButtonLabel(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
+}
+
+/** Everything one saved preset can do, gathered behind its chip's menu button. */
+@Composable
+private fun PresetManageDialog(
+    store: Store,
+    preset: Preset,
+    index: Int,
+    count: Int,
+    onRenamed: (Preset) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val ctx = LocalContext.current
+    val res = LocalResources.current
+    var renaming by remember { mutableStateOf(false) }
+    var deleting by remember { mutableStateOf(false) }
+    var newName by remember(preset.name) { mutableStateOf(preset.name) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.extraLarge,
+        title = { Text(preset.name) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                LedStrip(preset.ambient.pattern, preset.ambient, heightDp = 34)
+                Caption(stringResource(preset.ambient.pattern.labelRes))
+                TextButton(
+                    onClick = { store.applyPreset(preset); onDismiss() },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { ButtonLabel(stringResource(R.string.style_preset_apply)) }
+                TextButton(
+                    onClick = {
+                        store.updatePreset(preset)
+                        Toast.makeText(
+                            ctx, res.getString(R.string.style_preset_updated, preset.name), Toast.LENGTH_SHORT,
+                        ).show()
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { ButtonLabel(stringResource(R.string.style_preset_update)) }
+                TextButton(
+                    onClick = { newName = preset.name; renaming = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { ButtonLabel(stringResource(R.string.style_preset_rename)) }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(
+                        onClick = { store.movePreset(preset, -1) },
+                        enabled = index > 0,
+                        modifier = Modifier.weight(1f),
+                    ) { ButtonLabel(stringResource(R.string.style_preset_move_earlier)) }
+                    TextButton(
+                        onClick = { store.movePreset(preset, +1) },
+                        enabled = index in 0 until count - 1,
+                        modifier = Modifier.weight(1f),
+                    ) { ButtonLabel(stringResource(R.string.style_preset_move_later)) }
+                }
+                TextButton(
+                    onClick = { shareText(ctx, store.exportPresets(listOf(preset))) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { ButtonLabel(stringResource(R.string.style_preset_share)) }
+                TextButton(
+                    onClick = { deleting = true },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        stringResource(R.string.common_delete),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { ButtonLabel(stringResource(R.string.common_close)) }
+        },
+    )
+
+    if (renaming) {
+        AlertDialog(
+            onDismissRequest = { renaming = false },
+            shape = MaterialTheme.shapes.extraLarge,
+            title = { Text(stringResource(R.string.style_preset_rename)) },
+            text = {
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it.take(Looks.MAX_NAME_LENGTH) },
+                    singleLine = true,
+                    label = { Text(stringResource(R.string.style_name_field)) },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (store.renamePreset(preset, newName)) {
+                        renaming = false
+                        onRenamed(preset.copy(name = Looks.cleanName(newName)))
+                    } else {
+                        Toast.makeText(
+                            ctx, res.getString(R.string.style_preset_rename_taken), Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                }) { ButtonLabel(stringResource(R.string.common_save)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { renaming = false }) {
+                    ButtonLabel(stringResource(R.string.common_cancel))
+                }
+            },
+        )
+    }
+
+    if (deleting) {
+        AlertDialog(
+            onDismissRequest = { deleting = false },
+            shape = MaterialTheme.shapes.extraLarge,
+            text = { Text(stringResource(R.string.style_preset_delete_confirm, preset.name)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    store.deletePreset(preset)
+                    deleting = false
+                    onDismiss()
+                }) {
+                    Text(
+                        stringResource(R.string.common_delete),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { deleting = false }) {
                     ButtonLabel(stringResource(R.string.common_cancel))
                 }
             },

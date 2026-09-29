@@ -16,6 +16,9 @@ import java.util.Random;
  */
 public final class Renderer {
 
+    /** Width, in LEDs, of one colour-pair period of the marquee bands. */
+    static final int MARQUEE_BAND = 4;
+
     private final Random rnd;
 
     // random-mode fade state
@@ -224,6 +227,68 @@ public final class Renderer {
                 break;
             }
 
+            case "aurora": {
+                // two colours drifting through each other, with a slower shimmer riding on top
+                int a = palette[0];
+                int b = palette.length > 1 ? palette[1] : a;
+                double phase = (t % speed) / (double) speed;
+                for (int i = 0; i < n; i++) {
+                    double m = (1 + Math.sin(2 * Math.PI * (phase + (double) i / n))) / 2;
+                    double s = (1 + Math.sin(2 * Math.PI * 2 * phase + i * 1.3)) / 2;
+                    out[i] = scale(mix(a, b, m), 0.35 + 0.65 * s);
+                }
+                break;
+            }
+
+            case "crossfade": {
+                // the whole array eases from the first colour to the second and back
+                int a = palette[0];
+                int b = palette.length > 1 ? palette[1] : a;
+                double phase = (t % speed) / (double) speed;
+                int c = mix(a, b, (1 - Math.cos(phase * 2 * Math.PI)) / 2);
+                for (int i = 0; i < n; i++) out[i] = c;
+                break;
+            }
+
+            case "marquee": {
+                // alternating two-LED bands of each colour, sliding one band pair per cycle
+                int a = palette[0];
+                int b = palette.length > 1 ? palette[1] : a;
+                double phase = (t % speed) / (double) speed;
+                for (int i = 0; i < n; i++) {
+                    double m = clamp01(0.5 + 1.2 * Math.cos(2 * Math.PI * ((double) i / MARQUEE_BAND - phase)));
+                    out[i] = mix(b, a, m);
+                }
+                break;
+            }
+
+            case "twinkle": {
+                // each LED sparkles on its own rhythm over a faint glow, flaring towards white at the peak
+                for (int i = 0; i < n; i++) {
+                    long period = Math.max(120, speed * (5 + (i * 3) % 4) / 6);
+                    long offset = speed * ((i * 5) % 8) / 8;
+                    double ledPhase = ((t + offset) % period) / (double) period;
+                    double k = ledPhase < 0.1 ? ledPhase / 0.1 : Math.exp(-(ledPhase - 0.1) * 6.0);
+                    int c = scale(palette[i % palette.length], 0.04 + 0.96 * k);
+                    out[i] = k > 0.8 ? mix(c, 0xFFFFFFFF, (k - 0.8) / 0.2 * 0.6) : c;
+                }
+                break;
+            }
+
+            case "candle": {
+                // smoothed value noise: one shared flame plus a little independent flicker per LED
+                long seg = Math.max(40, speed / 6);
+                long step = t / seg;
+                double f = (t % seg) / (double) seg;
+                double ease = f * f * (3 - 2 * f);
+                double shared = noise(step, n) + (noise(step + 1, n) - noise(step, n)) * ease;
+                for (int i = 0; i < n; i++) {
+                    double own = noise(step, i) + (noise(step + 1, i) - noise(step, i)) * ease;
+                    out[i] = scale(palette[i % palette.length], 0.4 + 0.6 * (0.65 * shared + 0.35 * own));
+                }
+                break;
+            }
+
             case "random": {
                 long interval = Math.max(120, cfg.optLong("randomIntervalMs", 1500));
                 boolean perLed = cfg.optBoolean("randomPerLed", true);
@@ -294,6 +359,19 @@ public final class Renderer {
         int g = (int) (((a >> 8) & 0xFF) * (1 - k) + ((b >> 8) & 0xFF) * k);
         int bl = (int) ((a & 0xFF) * (1 - k) + (b & 0xFF) * k);
         return 0xFF000000 | (r << 16) | (g << 8) | bl;
+    }
+
+    /**
+     * Deterministic value noise in [0, 1) for one time step and lane.
+     *
+     * The preview mirrors this bit for bit, so the flicker on screen is the flicker on the LEDs.
+     */
+    static double noise(long step, int lane) {
+        long x = step * 0x2545F4914F6CDD1DL + lane * 0x5851F42D4C957F2DL;
+        x ^= x >>> 31;
+        x *= 0x27BB2EE687B0B0FDL;
+        x ^= x >>> 29;
+        return (x >>> 11) / (double) (1L << 53);
     }
 
     static int hsv(double h, float s, float v) {
