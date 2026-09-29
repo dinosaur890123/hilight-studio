@@ -664,6 +664,7 @@ public final class Engine {
             case "marquee":
             case "twinkle":
             case "candle":
+            case "breathing":
                 return true;
             case "custom":
                 return cfg.optLong("rotateMs", 0) > 50;

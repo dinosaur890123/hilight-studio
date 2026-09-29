@@ -289,6 +289,28 @@ public final class Renderer {
                 break;
             }
 
+            case "breathing": {
+                // A guided breath: fill LED by LED on the inhale, hold full, empty on the exhale while
+                // easing to the second colour, then rest dark. timeOffsetMs lets a long session be sent
+                // as consecutive alerts without the rhythm restarting at each one.
+                long inhale = phaseMs(cfg, "inhaleMs", 4000, 1000);
+                long hold = phaseMs(cfg, "holdMs", 4000, 0);
+                long exhale = phaseMs(cfg, "exhaleMs", 4000, 1000);
+                long rest = phaseMs(cfg, "restMs", 4000, 0);
+                long p = Math.floorMod(t + Math.max(0, cfg.optLong("timeOffsetMs", 0)), inhale + hold + exhale + rest);
+                int a = palette[0];
+                int b = palette.length > 1 ? palette[1] : a;
+                if (p < inhale) {
+                    fillLevel(out, a, ease(p / (double) inhale) * n);
+                } else if (p < inhale + hold) {
+                    for (int i = 0; i < n; i++) out[i] = a;
+                } else if (p < inhale + hold + exhale) {
+                    double e = ease((p - inhale - hold) / (double) exhale);
+                    fillLevel(out, mix(a, b, e), (1 - e) * n);
+                }
+                break;
+            }
+
             case "random": {
                 long interval = Math.max(120, cfg.optLong("randomIntervalMs", 1500));
                 boolean perLed = cfg.optBoolean("randomPerLed", true);
@@ -372,6 +394,18 @@ public final class Renderer {
         x *= 0x27BB2EE687B0B0FDL;
         x ^= x >>> 29;
         return (x >>> 11) / (double) (1L << 53);
+    }
+
+    private static long phaseMs(JSONObject cfg, String key, long fallback, long min) {
+        return Math.max(min, Math.min(20_000, cfg.optLong(key, fallback)));
+    }
+
+    private static double ease(double f) {
+        return f * f * (3 - 2 * f);
+    }
+
+    private static void fillLevel(int[] out, int colour, double level) {
+        for (int i = 0; i < out.length; i++) out[i] = scale(colour, clamp01(level - i));
     }
 
     static int hsv(double h, float s, float v) {

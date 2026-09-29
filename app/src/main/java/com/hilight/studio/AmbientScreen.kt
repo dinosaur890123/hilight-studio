@@ -71,14 +71,18 @@ fun AmbientScreen(store: Store) {
     PresetsCard(store)
     FeaturedLooksCard(store)
 
+    val timeOfDay by store.timeOfDayColours.collectAsStateWithLifecycle()
+
     PixelCard(tone = 2) {
         SectionTitle(stringResource(R.string.style_always_on_style))
-        LedStrip(ambient.pattern, ambient, active = enabled, heightDp = 46)
+        val shownLook = if (timeOfDay) store.effectiveAmbient(ambient) else ambient
+        LedStrip(shownLook.pattern, shownLook, active = enabled, heightDp = 46)
         PatternCarousel(
             selected = ambient.pattern,
             options = Pattern.entries,
             onSelect = { store.setAmbient(ambient.copy(pattern = it)) },
         )
+        TimeOfDayControls(store, timeOfDay, ambient.pattern)
         if (!enabled) {
             Text(
                 stringResource(R.string.style_control_off_warning),

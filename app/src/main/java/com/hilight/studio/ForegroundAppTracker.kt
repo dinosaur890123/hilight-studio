@@ -34,8 +34,10 @@ internal class ForegroundAppTracker {
 internal data class ForegroundWatchPlan(
     val trackForegroundApps: Boolean,
     val trackFaceDown: Boolean,
+    /** Listens for a shake while the screen is on, for shake-for-sparkles. */
+    val trackShake: Boolean = false,
 ) {
-    val shouldRun: Boolean get() = trackForegroundApps || trackFaceDown
+    val shouldRun: Boolean get() = trackForegroundApps || trackFaceDown || trackShake
 }
 
 /** Pure start/stop and work policy shared by restoration and rule updates. */
@@ -44,6 +46,7 @@ internal object ForegroundWatchPolicy {
         enabled: Boolean,
         rules: List<AppRule>,
         globalFaceDownOnly: Boolean,
+        shakeSparkles: Boolean = false,
     ): ForegroundWatchPlan = ForegroundWatchPlan(
         trackForegroundApps = enabled && rules.any {
             it.enabled && it.trigger == Trigger.FOREGROUND
@@ -51,5 +54,6 @@ internal object ForegroundWatchPolicy {
         trackFaceDown = enabled && (globalFaceDownOnly || rules.any {
             it.enabled && it.trigger == Trigger.NOTIFICATION && it.onlyWhenFaceDown
         }),
+        trackShake = enabled && shakeSparkles,
     )
 }

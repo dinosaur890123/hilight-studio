@@ -30,6 +30,7 @@ Control the eight-LED HiLight array on Pixel 11 Pro devices.
 - Per-contact rules: a colour for one person or one chat, picked from the chats HiLight has seen
 - Featured looks, a Surprise me button, and saved presets you can rename, reorder, share, import and export
 - Wallpaper-derived colours and a Quick Settings tile
+- A screen-down compass, a breathing guide, shake for sparkles and time-of-day colours
 - Quiet hours, Do Not Disturb, Battery Saver, and low-battery controls
 - English and Japanese, selectable per app from Android's own language settings
 - Automatic root access when available, with Shizuku and ADB as fallbacks

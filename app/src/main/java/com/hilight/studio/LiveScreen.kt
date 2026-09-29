@@ -110,7 +110,8 @@ fun LiveScreen(store: Store) {
 
     PixelCard(tone = 0) {
         // while a test is running the hero shows the test, not the ambient look
-        val shown = previewLook ?: ambient
+        val timeOfDay by store.timeOfDayColours.collectAsStateWithLifecycle()
+        val shown = previewLook ?: if (timeOfDay) store.effectiveAmbient(ambient) else ambient
         DeviceHero(
             pattern = if (enabled) shown.pattern else Pattern.OFF,
             cfg = shown,
@@ -223,6 +224,8 @@ fun LiveScreen(store: Store) {
             }
         }
     }
+
+    ExtrasSection(store, available = enabled && status.alive)
 
     PixelCard {
         SectionTitle(

@@ -36,6 +36,7 @@ class ForegroundWatcher : Service() {
     @Volatile private var forceRefresh = true
     @Volatile private var plan = ForegroundWatchPlan(false, false)
     private lateinit var faceDownTracker: FaceDownSensorTracker
+    private lateinit var shakeTracker: ShakeSensorTracker
 
     /**
      * Set on the main thread when the service is going away.
@@ -78,6 +79,9 @@ class ForegroundWatcher : Service() {
                 if (!stopped) store.updateFaceDownSensorState(state, sampleElapsedMs)
             }
         }
+        shakeTracker = ShakeSensorTracker(this, handler) {
+            main.post { if (!stopped) store.sparkle() }
+        }
         startForeground(NOTIFICATION_ID, notification(plan))
     }
 
@@ -85,6 +89,7 @@ class ForegroundWatcher : Service() {
         stopped = true
         // The listener is registered on this looper, so unregister it before asking the thread to quit.
         faceDownTracker.stop()
+        shakeTracker.stop()
         handler.removeCallbacksAndMessages(null)
         thread.quitSafely()
         main.post {
@@ -121,6 +126,10 @@ class ForegroundWatcher : Service() {
             main.post { if (!stopped) store.setForegroundOverride(null, null) }
         }
 
+        if (prior.trackShake != next.trackShake) {
+            handler.post { if (!stopped) applyShake() }
+        }
+
         if (prior.trackFaceDown != next.trackFaceDown) {
             handler.post {
                 if (stopped) return@post
@@ -138,6 +147,15 @@ class ForegroundWatcher : Service() {
                     }
                 }
             }
+        }
+    }
+
+    private fun applyShake() {
+        if (plan.trackShake) {
+            shakeTracker.start()
+            if (stopped) shakeTracker.stop()
+        } else {
+            shakeTracker.stop()
         }
     }
 
@@ -190,7 +208,8 @@ class ForegroundWatcher : Service() {
                         plan.trackForegroundApps && plan.trackFaceDown ->
                             R.string.service_watcher_text_both
                         plan.trackFaceDown -> R.string.service_watcher_text_face_down
-                        else -> R.string.service_watcher_text
+                        plan.trackForegroundApps -> R.string.service_watcher_text
+                        else -> R.string.service_watcher_text_shake
                     }
                 )
             )
@@ -204,6 +223,7 @@ class ForegroundWatcher : Service() {
         private const val NOTIFICATION_ID = 1
         private const val EXTRA_FOREGROUND = "trackForegroundApps"
         private const val EXTRA_FACE_DOWN = "trackFaceDown"
+        private const val EXTRA_SHAKE = "trackShake"
         private const val POLL_MS = 1000L
         private const val QUERY_OVERLAP_MS = 2_000L
         private const val BOOTSTRAP_LOOKBACK_MS = 24 * 60 * 60_000L
@@ -213,6 +233,7 @@ class ForegroundWatcher : Service() {
             val intent = Intent(ctx, ForegroundWatcher::class.java)
                 .putExtra(EXTRA_FOREGROUND, plan.trackForegroundApps)
                 .putExtra(EXTRA_FACE_DOWN, plan.trackFaceDown)
+                .putExtra(EXTRA_SHAKE, plan.trackShake)
             return runCatching {
                 if (plan.shouldRun) {
                     ctx.startForegroundService(intent)
@@ -229,6 +250,7 @@ class ForegroundWatcher : Service() {
         private fun planFromIntent(intent: Intent): ForegroundWatchPlan = ForegroundWatchPlan(
             trackForegroundApps = intent.getBooleanExtra(EXTRA_FOREGROUND, false),
             trackFaceDown = intent.getBooleanExtra(EXTRA_FACE_DOWN, false),
+            trackShake = intent.getBooleanExtra(EXTRA_SHAKE, false),
         )
 
         fun hasFaceDownSensor(ctx: Context): Boolean = FaceDownSensorTracker.hasSensor(ctx)

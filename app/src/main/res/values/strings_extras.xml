@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The Live tab's extras (compass, breathing guide, shake for sparkles) and the Style tab's
+    time-of-day colours. Format strings use positional arguments.
+-->
+<resources>
+
+    <string name="extras_stop">Stop</string>
+
+    <!-- Compass -->
+    <string name="compass_title">Compass</string>
+    <string name="compass_body">Lay the phone screen-down and the LED pointing to magnetic north glows red, with a faint white tail opposite. Runs for one minute and keeps the screen awake.</string>
+    <string name="compass_start">Start compass</string>
+    <string name="compass_no_sensor">This phone does not report a compass sensor.</string>
+    <!-- %1$s is a direction such as "NE", %2$d the heading in degrees -->
+    <string name="compass_heading">Top of phone points %1$s · %2$d°</string>
+    <!-- %1$d is whole seconds left -->
+    <string name="compass_remaining">%1$d s left</string>
+    <string name="compass_figure_eight">The compass is unsure. Move the phone in a figure of eight to recalibrate it.</string>
+    <string name="compass_calibrate_hint">Needle pointing the wrong way? Point the top of the phone north: the LED nearest the top edge should glow. If another does, turn the needle until it does. Then turn the phone clockwise; if the needle turns the same way, reverse it.</string>
+    <string name="compass_turn_left">Turn needle ◀</string>
+    <string name="compass_turn_right">Turn needle ▶</string>
+    <string name="compass_reverse">Reverse direction</string>
+    <string-array name="compass_directions">
+        <item>N</item>
+        <item>NE</item>
+        <item>E</item>
+        <item>SE</item>
+        <item>S</item>
+        <item>SW</item>
+        <item>W</item>
+        <item>NW</item>
+    </string-array>
+
+    <!-- Breathing guide -->
+    <string name="breath_title">Breathing guide</string>
+    <string name="breath_body">The ring fills as you breathe in, stays full while you hold, empties as you breathe out and rests dark. Lay the phone screen-down and follow the light.</string>
+    <string name="breath_box">Box</string>
+    <string name="breath_relax">4-7-8</string>
+    <string name="breath_calm">Calm</string>
+    <string name="breath_box_hint">In 4 s, hold 4 s, out 4 s, rest 4 s. Steady and focusing.</string>
+    <string name="breath_relax_hint">In 4 s, hold 7 s, out 8 s. Slow and relaxing, often used before sleep.</string>
+    <string name="breath_calm_hint">In 5 s, out 5 s, with a short rest. Simple and even.</string>
+    <string name="breath_start">Start breathing</string>
+    <string name="breath_in">Breathe in</string>
+    <string name="breath_hold">Hold</string>
+    <string name="breath_out">Breathe out</string>
+    <string name="breath_rest">Rest</string>
+    <!-- %1$s is the phase, %2$d the whole seconds left in it -->
+    <string name="breath_phase">%1$s · %2$d</string>
+    <!-- %1$s is a formatted duration -->
+    <string name="breath_left">%1$s left</string>
+
+    <!-- Shake for sparkles -->
+    <string name="shake_title">Shake for sparkles</string>
+    <string name="shake_toggle">Sparkle when shaken</string>
+    <string name="shake_body">Shake the phone firmly while the screen is on for a short burst of sparkles in a random colour. It listens only while the screen is on, through HiLight\'s background watcher, whose notification then shows. Quiet hours, Do Not Disturb and battery rules still apply.</string>
+
+    <!-- Time-of-day colours (Style tab) -->
+    <string name="tod_toggle">Colours follow the time of day</string>
+    <string name="tod_body">Indigo at night, rose at dawn, sky blue in the morning, warm white at midday, gold and red at sunset, violet at dusk. Your own colours come back when you turn this off.</string>
+    <string name="tod_not_this_effect">This effect has colours of its own, so time-of-day colours apply once you pick a one- or two-colour effect.</string>
+
+    <!-- Background watcher notification when it runs only for shake detection -->
+    <string name="service_watcher_text_shake">Listening for a shake while the screen is on</string>
+
+</resources>

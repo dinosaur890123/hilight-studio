@@ -23,6 +23,17 @@ All notable changes to HiLight Studio are documented here.
   Only notifications since the last unlock count, nothing repeats, and the glow passes the same
   screen-off, face-down, Do Not Disturb, quiet-hours and battery gates as the rule it replaces. It
   reuses the existing Breathe renderer path with per-LED colours, so no renderer change is involved.
+- Added a **compass** on the Live tab. With the phone screen-down, the LED pointing to magnetic
+  north glows red with a faint tail opposite, for one minute at a time. The LED order around the ring
+  is not yet confirmed on hardware, so the needle can be turned and reversed to calibrate it by eye.
+- Added a **breathing guide** on the Live tab (Box, 4-7-8 and Calm; 1, 2 or 3 minutes). The ring fills
+  on the inhale, holds, empties on the exhale and rests dark. It is a new renderer mode sent as
+  overlapping segments so the rhythm continues past the one-minute alert limit; renderer
+  implementation revision is now 10.
+- Added optional **shake for sparkles**: a firm shake while the screen is on sets off a short
+  random-coloured Twinkle, through the existing background watcher and the usual guards.
+- Added optional **time-of-day colours** on the Style tab: one- and two-colour looks follow a palette
+  from night indigo through dawn, day, sunset and dusk. The saved look itself is unchanged.
 - Existing duration, brightness, rest and cleanup limits apply to every new effect unchanged.
 
 ## 1.0.15-rc.1 — 2026-09-20

@@ -434,6 +434,13 @@ fun LedStrip(
     val patternName = stringResource(pattern.labelRes)
     val label = if (active) stringResource(R.string.hero_strip_preview, patternName)
     else stringResource(R.string.hero_strip_off, patternName)
+    LedFrameStrip(frame, label, modifier, heightDp)
+}
+
+/** Draws one frame of LED colours as the compact strip, for callers that compute their own frames. */
+@Composable
+fun LedFrameStrip(frame: IntArray, description: String, modifier: Modifier = Modifier, heightDp: Int = 40) {
+    val label = description
     Canvas(
         modifier
             .fillMaxWidth()

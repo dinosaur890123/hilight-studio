@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- "Stop" -->
+    <string name="extras_stop">停止</string>
+
+    <!-- "Compass" -->
+    <string name="compass_title">コンパス</string>
+    <!-- "Lay the phone screen-down and the LED pointing to magnetic north glows red, …" -->
+    <string name="compass_body">画面を下にして置くと、磁北を指す LED が赤く光り、反対側がかすかに白く光ります。1 分間動作し、その間は画面をオンのままにします。</string>
+    <!-- "Start compass" -->
+    <string name="compass_start">コンパスを開始</string>
+    <!-- "This phone does not report a compass sensor." -->
+    <string name="compass_no_sensor">この端末にはコンパスセンサーがありません。</string>
+    <!-- "Top of phone points %1$s · %2$d°" -->
+    <string name="compass_heading">端末の上部は %1$s · %2$d°</string>
+    <!-- "%1$d s left" -->
+    <string name="compass_remaining">残り %1$d 秒</string>
+    <!-- "The compass is unsure. Move the phone in a figure of eight to recalibrate it." -->
+    <string name="compass_figure_eight">方位が不安定です。端末を 8 の字に動かして補正してください。</string>
+    <!-- "Needle pointing the wrong way? …" -->
+    <string name="compass_calibrate_hint">針の向きがずれていますか？端末の上部を北に向けると、上端にいちばん近い LED が光るはずです。別の LED が光る場合は、正しい LED が光るまで針を回してください。次に端末を時計回りに回し、針も同じ向きに回る場合は方向を反転してください。</string>
+    <!-- "Turn needle ◀" -->
+    <string name="compass_turn_left">針を回す ◀</string>
+    <!-- "Turn needle ▶" -->
+    <string name="compass_turn_right">針を回す ▶</string>
+    <!-- "Reverse direction" -->
+    <string name="compass_reverse">方向を反転</string>
+    <string-array name="compass_directions">
+        <item>北</item>
+        <item>北東</item>
+        <item>東</item>
+        <item>南東</item>
+        <item>南</item>
+        <item>南西</item>
+        <item>西</item>
+        <item>北西</item>
+    </string-array>
+
+    <!-- "Breathing guide" -->
+    <string name="breath_title">呼吸ガイド</string>
+    <!-- "The ring fills as you breathe in, …" -->
+    <string name="breath_body">息を吸うとリングが満ち、止めている間は満ちたまま、吐くと消えていき、最後は暗くなって休みます。画面を下にして置き、光に合わせて呼吸してください。</string>
+    <!-- "Box" -->
+    <string name="breath_box">ボックス</string>
+    <!-- "4-7-8" -->
+    <string name="breath_relax">4-7-8</string>
+    <!-- "Calm" -->
+    <string name="breath_calm">穏やか</string>
+    <!-- "In 4 s, hold 4 s, out 4 s, rest 4 s. Steady and focusing." -->
+    <string name="breath_box_hint">4 秒吸って、4 秒止め、4 秒吐き、4 秒休みます。落ち着いて集中できます。</string>
+    <!-- "In 4 s, hold 7 s, out 8 s. Slow and relaxing, often used before sleep." -->
+    <string name="breath_relax_hint">4 秒吸って、7 秒止め、8 秒吐きます。ゆったりとリラックスでき、寝る前によく使われます。</string>
+    <!-- "In 5 s, out 5 s, with a short rest. Simple and even." -->
+    <string name="breath_calm_hint">5 秒吸って 5 秒吐き、少し休みます。シンプルで一定のリズムです。</string>
+    <!-- "Start breathing" -->
+    <string name="breath_start">呼吸を開始</string>
+    <!-- "Breathe in" -->
+    <string name="breath_in">吸って</string>
+    <!-- "Hold" -->
+    <string name="breath_hold">止めて</string>
+    <!-- "Breathe out" -->
+    <string name="breath_out">吐いて</string>
+    <!-- "Rest" -->
+    <string name="breath_rest">休む</string>
+    <!-- "%1$s · %2$d" -->
+    <string name="breath_phase">%1$s · %2$d</string>
+    <!-- "%1$s left" -->
+    <string name="breath_left">残り %1$s</string>
+
+    <!-- "Shake for sparkles" -->
+    <string name="shake_title">振ってきらめき</string>
+    <!-- "Sparkle when shaken" -->
+    <string name="shake_toggle">振るときらめく</string>
+    <!-- "Shake the phone firmly while the screen is on …" -->
+    <string name="shake_body">画面がオンのときに端末をしっかり振ると、ランダムな色で短くきらめきます。画面がオンの間だけ HiLight のバックグラウンド監視で振動を検出し、その間は通知が表示されます。サイレント時間、サイレントモード、バッテリーの設定は引き続き適用されます。</string>
+
+    <!-- "Colours follow the time of day" -->
+    <string name="tod_toggle">時間帯に合わせて色を変える</string>
+    <!-- "Indigo at night, rose at dawn, …" -->
+    <string name="tod_body">夜は藍色、夜明けはローズ、朝は空色、昼は暖かい白、夕方は金色から赤、日暮れは紫に変わります。オフにすると、元の色に戻ります。</string>
+    <!-- "This effect has colours of its own, …" -->
+    <string name="tod_not_this_effect">このエフェクトには独自の色があるため、時間帯の色は 1 色または 2 色のエフェクトを選んだときに適用されます。</string>
+
+    <!-- "Listening for a shake while the screen is on" -->
+    <string name="service_watcher_text_shake">画面がオンの間、振動を検出中</string>
+
+</resources>

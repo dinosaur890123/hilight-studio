@@ -394,6 +394,27 @@ class Store private constructor(private val app: Context) {
     private val _respectDnd = MutableStateFlow(prefs.getBoolean("respectDnd", true))
     val respectDnd: StateFlow<Boolean> = _respectDnd.asStateFlow()
 
+    /** Off by default: a shake while the screen is on sets off a short burst of sparkles. */
+    private val _shakeSparkles = MutableStateFlow(prefs.getBoolean("shakeSparkles", false))
+    val shakeSparkles: StateFlow<Boolean> = _shakeSparkles.asStateFlow()
+
+    /** Off by default: the always-on look takes its colours from the time of day. */
+    private val _timeOfDayColours = MutableStateFlow(prefs.getBoolean("timeOfDayColours", false))
+    val timeOfDayColours: StateFlow<Boolean> = _timeOfDayColours.asStateFlow()
+
+    private val _compassCalibration = MutableStateFlow(
+        Compass.Calibration(
+            offsetSteps = Math.floorMod(prefs.getInt("compassOffset", 0), LED_COUNT),
+            reversed = prefs.getBoolean("compassReversed", false),
+        )
+    )
+    val compassCalibration: StateFlow<Compass.Calibration> = _compassCalibration.asStateFlow()
+
+    /** The breathing session in progress, or null. */
+    private val _breathing = MutableStateFlow<BreathingSession?>(null)
+    val breathing: StateFlow<BreathingSession?> = _breathing.asStateFlow()
+    private var breathingNext: Runnable? = null
+
     /** Off by default: when on, a notification glows every waiting app rather than only its own rule. */
     private val _waitingGlow = MutableStateFlow(prefs.getBoolean("waitingGlow", false))
     val waitingGlow: StateFlow<Boolean> = _waitingGlow.asStateFlow()
@@ -777,6 +798,7 @@ class Store private constructor(private val app: Context) {
         enabled = _enabled.value,
         rules = _rules.value,
         globalFaceDownOnly = _faceDownOnly.value,
+        shakeSparkles = _shakeSparkles.value,
     )
 
     /** Restores or stops the service to match saved rules and the master switch. */
@@ -904,6 +926,35 @@ class Store private constructor(private val app: Context) {
     fun setWaitingGlow(v: Boolean) {
         _waitingGlow.value = v
         prefs.edit().putBoolean("waitingGlow", v).apply()
+    }
+
+    fun setShakeSparkles(v: Boolean) {
+        _shakeSparkles.value = v
+        prefs.edit().putBoolean("shakeSparkles", v).apply()
+        syncForegroundWatcher()
+    }
+
+    fun setTimeOfDayColours(v: Boolean) {
+        _timeOfDayColours.value = v
+        prefs.edit().putBoolean("timeOfDayColours", v).apply()
+        pushCurrent()
+    }
+
+    fun setCompassCalibration(v: Compass.Calibration) {
+        _compassCalibration.value = v
+        prefs.edit().putInt("compassOffset", v.offsetSteps).putBoolean("compassReversed", v.reversed).apply()
+    }
+
+    /**
+     * The always-on look as it is actually sent: with time-of-day colours on, its colours come from
+     * the clock at the moment it is pushed. The stored look is never rewritten, so turning the mode
+     * off brings the user's own colours straight back.
+     */
+    fun effectiveAmbient(look: Ambient = _ambient.value): Ambient {
+        if (!_timeOfDayColours.value) return look
+        val now = java.util.Calendar.getInstance()
+        val minute = now.get(java.util.Calendar.HOUR_OF_DAY) * 60 + now.get(java.util.Calendar.MINUTE)
+        return TimeOfDay.apply(look, minute)
     }
 
     fun setWaitingGlowMs(v: Int) {
@@ -1614,6 +1665,93 @@ class Store private constructor(private val app: Context) {
         return null
     }
 
+    // ------------------------------------------------------------------ extras: compass, breathing, shake
+
+    /**
+     * One compass frame. [first] starts the session and is refused, with the reason, when a guard
+     * would block a Test; later frames are sent only while the compass still owns the top layer, so
+     * a notification that arrives mid-session wins and ends it. Returns false when the session is over.
+     */
+    fun showCompassFrame(leds: List<Int>, remainingMs: Int, first: Boolean): Boolean {
+        if (Looper.myLooper() != main.looper) return false
+        if (first) {
+            if (previewSuppressionReason() != null) return false
+        } else if (activeAlertOwner != COMPASS_OWNER || remainingMs <= 0) {
+            return false
+        }
+        val look = Ambient(pattern = Pattern.CUSTOM, perLed = leds, brightness = 1f)
+        holdAlert(
+            Bridge.lookAlertJson(Bridge.nextAlertId(), look, remainingMs, AlertSource.PREVIEW),
+            remainingMs, arm = first, preview = look, source = AlertSource.PREVIEW, owner = COMPASS_OWNER,
+        )
+        return true
+    }
+
+    fun stopCompass() = cancelOwnedAlert(COMPASS_OWNER)
+
+    /** Starts a breathing session, or returns why a guard will not allow it. */
+    fun startBreathing(rhythm: BreathingRhythm, totalMs: Int): Suppression? {
+        previewSuppressionReason()?.let { return it }
+        stopBreathing()
+        val session = BreathingSession(rhythm, SystemClock.elapsedRealtime(), totalMs)
+        _breathing.value = session
+        sendBreathingSegment(session, BreathingGuide.segments(totalMs), 0)
+        return null
+    }
+
+    fun stopBreathing() {
+        breathingNext?.let { main.removeCallbacks(it) }
+        breathingNext = null
+        val wasRunning = _breathing.value != null
+        _breathing.value = null
+        if (wasRunning) cancelOwnedAlert(BREATHING_OWNER)
+    }
+
+    private fun sendBreathingSegment(
+        session: BreathingSession,
+        segments: List<Triple<Long, Int, Int?>>,
+        index: Int,
+    ) {
+        if (_breathing.value !== session) return
+        // A notification or another test took the array: the session ends rather than overriding it.
+        if (index > 0 && activeAlertOwner != BREATHING_OWNER) {
+            _breathing.value = null
+            return
+        }
+        val (offset, duration, next) = segments.getOrNull(index) ?: return
+        holdAlert(
+            BreathingGuide.alert(Bridge.nextAlertId(), session.rhythm, offset, duration),
+            duration,
+            arm = index == 0,
+            preview = Ambient(pattern = Pattern.BREATHE, color = BreathingGuide.INHALE_COLOUR, speedMs = session.rhythm.cycleMs),
+            source = AlertSource.PREVIEW,
+            owner = BREATHING_OWNER,
+        )
+        if (next != null) {
+            val r = Runnable { sendBreathingSegment(session, segments, index + 1) }
+            breathingNext = r
+            main.postDelayed(r, next.toLong())
+        } else {
+            val r = Runnable { if (_breathing.value === session) _breathing.value = null }
+            breathingNext = r
+            main.postDelayed(r, duration.toLong())
+        }
+    }
+
+    /** One burst of sparkles for a shake, through the same gates as any other background signal. */
+    fun sparkle() {
+        if (Looper.myLooper() != main.looper) {
+            main.post { sparkle() }
+            return
+        }
+        if (!_shakeSparkles.value) return
+        showDeviceSignal(
+            ShakeDetector.OWNER,
+            ShakeDetector.sparkleLook(kotlin.random.Random.nextInt(360).toFloat()),
+            ShakeDetector.SPARKLE_MS,
+        )
+    }
+
     internal fun cancelOwnedAlert(owner: String) {
         if (Looper.myLooper() != main.looper) {
             main.post { cancelOwnedAlert(owner) }
@@ -1669,6 +1807,9 @@ class Store private constructor(private val app: Context) {
      * sight, so backgrounding must leave it alone.
      */
     fun stopPreview() {
+        breathingNext?.let { main.removeCallbacks(it) }
+        breathingNext = null
+        _breathing.value = null
         if (!alertIsPreview) return
         alertExpiry?.let { main.removeCallbacks(it) }
         alertExpiry = null
@@ -1970,7 +2111,7 @@ class Store private constructor(private val app: Context) {
         val revision = ++stateRevision
         val json = Bridge.stateJson(
             rendererEnabled,
-            _priority.value, _ambient.value, alert, _ambientTimeoutMs.value, arm, dimFactor(),
+            _priority.value, effectiveAmbient(), alert, _ambientTimeoutMs.value, arm, dimFactor(),
             privacyRules = _privacyRules.value,
             privacyObserverEnabled = privacyAllowed,
             privacyOutputEnabled = privacyAllowed,
@@ -3271,6 +3412,10 @@ class Store private constructor(private val app: Context) {
     }
 
     companion object {
+        /** Top-layer owners for the extras, so each can tell whether it still holds the array. */
+        const val COMPASS_OWNER = "compass"
+        const val BREATHING_OWNER = "breathing"
+
         private const val TAG = "HiLightStore"
 
         /** How many peeks the inspector keeps — enough to cover the last minute of a busy phone. */
