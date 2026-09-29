@@ -26,6 +26,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
       - name: Test, build, and lint
         run: ./gradlew --no-daemon :app:testDebugUnitTest :app:build :app:lint
+      # The debug APK is signed with the runner's throwaway debug key, so it installs for testing but
+      # cannot update a release-signed install. Release APKs built here are unsigned.
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: hilight-studio-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
       - name: Build standalone helper
         run: ./scripts/build-helper.sh
       - name: Verify optimized privileged entry points
