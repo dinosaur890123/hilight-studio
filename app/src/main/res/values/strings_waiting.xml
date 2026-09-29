@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The waiting-apps glow on the Apps tab: one glow with a section of the array for each app that
+    still has a notification waiting. Format strings use positional arguments.
+-->
+<resources>
+
+    <string name="waiting_title">Waiting apps glow</string>
+    <string name="waiting_toggle">Show every waiting app</string>
+    <string name="waiting_body">When a notification arrives and more than one app is waiting, the LEDs glow once with a section in each app\'s colour, blending softly into the next. With only one app waiting, its rule\'s own look plays as usual. Nothing repeats, and unlocking the phone starts the count again.</string>
+    <!-- Under the preview strip until the user has two notification rules of their own -->
+    <string name="waiting_example">Example colours. Your rules\' colours appear here once you have two notification rules.</string>
+    <!-- %1$d is the most sections the array is split into -->
+    <string name="waiting_order_hint">Sections follow your rule order. Up to %1$d apps fit; the app that just notified always gets one.</string>
+    <!-- %1$s and %2$s are two rule names -->
+    <string name="waiting_similar">%1$s and %2$s have similar colours, so their sections may be hard to tell apart.</string>
+    <string name="waiting_length">Glow length</string>
+
+</resources>

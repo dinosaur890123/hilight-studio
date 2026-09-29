@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- "Waiting apps glow" -->
+    <string name="waiting_title">未読アプリの一括表示</string>
+    <!-- "Show every waiting app" -->
+    <string name="waiting_toggle">未読のあるアプリをすべて表示</string>
+    <!-- "When a notification arrives and more than one app is waiting, …" -->
+    <string name="waiting_body">通知が届いたときに未読のアプリが複数ある場合、アプリごとの色で LED を区切り、境目をなめらかにつないで 1 回だけ光らせます。未読のアプリが 1 つだけのときは、そのルールのスタイルがいつもどおり再生されます。繰り返しは行わず、ロックを解除するとカウントはリセットされます。</string>
+    <!-- "Example colours. Your rules' colours appear here once you have two notification rules." -->
+    <string name="waiting_example">表示例です。通知ルールが 2 つ以上になると、ルールの色がここに表示されます。</string>
+    <!-- "Sections follow your rule order. Up to %1$d apps fit; the app that just notified always gets one." -->
+    <string name="waiting_order_hint">区切りはルールの順に並びます。表示できるのは最大 %1$d 個のアプリで、今届いた通知のアプリは必ず含まれます。</string>
+    <!-- "%1$s and %2$s have similar colours, so their sections may be hard to tell apart." -->
+    <string name="waiting_similar">%1$s と %2$s の色が似ているため、区別しにくい場合があります。</string>
+    <!-- "Glow length" -->
+    <string name="waiting_length">点灯時間</string>
+
+</resources>

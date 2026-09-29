@@ -38,9 +38,19 @@ class NotificationTrigger : NotificationListenerService() {
     private var observationScope: CoroutineScope? = null
     private var signalOwner: String? = null
     private var reminderOwner: String? = null
+
+    /**
+     * Wall-clock time from which a notification counts as "waiting" for the waiting-apps glow.
+     *
+     * Moved forward on every unlock, because an unlocked phone has been looked at. It starts at the
+     * moment the listener connects rather than at zero, so a shade full of old notifications the user
+     * has chosen to keep never shows up as a glow.
+     */
+    private var waitingSinceMs = System.currentTimeMillis()
     private val unlockReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == Intent.ACTION_USER_PRESENT) {
+                waitingSinceMs = System.currentTimeMillis()
                 reminders.clear()
                 reminderOwner?.let(store::cancelOwnedAlert)
                 reminderOwner = null
@@ -71,6 +81,7 @@ class NotificationTrigger : NotificationListenerService() {
         // wait for an unrelated notification first.
         store.syncForegroundWatcher()
         connected = true
+        waitingSinceMs = System.currentTimeMillis()
         store.deviceSignals.onInterruptionFilterChanged(currentInterruptionFilter)
         if (store.enabled.value && locked()) seedReminders()
         observationScope?.cancel()
@@ -184,8 +195,63 @@ class NotificationTrigger : NotificationListenerService() {
             ?: if (rule.isCatchAll) MatchStrength.CATCH_ALL else MatchStrength.APP
         val scope = if (rule.isConversationRule) "chat" else "app"
         Log.i(TAG, "alert for ${info.pkg} rule=$scope match=$how pattern=${rule.pattern.key}")
-        fireRule(rule, sbn.key, "notification:${sbn.key}")
+        if (store.waitingGlow.value) fireWaitingOrRule(rule, sbn)
+        else fireRule(rule, sbn.key, "notification:${sbn.key}")
         store.noteRuleFired(rule, info)
+    }
+
+    /**
+     * Shows every waiting app when more than one is waiting; otherwise the rule's own alert, so a lone
+     * notification still gets the look its rule was given.
+     */
+    private fun fireWaitingOrRule(rule: AppRule, sbn: StatusBarNotification) {
+        val owner = "notification:${sbn.key}"
+        val waiting = waitingRules(rule, sbn)
+        val picked = WaitingApps.pick(waiting.map { it.second }, store.rules.value.map { it.id }, rule.id)
+        val scope = observationScope
+        if (picked.size < 2 || scope == null) {
+            fireRule(rule, sbn.key, owner)
+            return
+        }
+        val rulesById = waiting.associate { (r, _) -> r.id to r }
+        Log.i(TAG, "waiting glow: ${picked.size} sections")
+        scope.launch {
+            val sections = picked.map { entry ->
+                val r = rulesById.getValue(entry.ruleId)
+                if (r.useAppColor && !r.randomColor) {
+                    AppColor.colorFor(this@NotificationTrigger, entry.pkg) ?: r.color
+                } else r.color
+            }
+            // The icon lookup can take a moment; a notification dismissed meanwhile gets no glow.
+            if (runCatching { activeNotifications?.none { it.key == sbn.key } }.getOrNull() != false) return@launch
+            store.fireWaitingGlow(rule, sections, owner)
+        }
+    }
+
+    /**
+     * Every notification still in the shade that arrived since the last unlock and that a rule would
+     * light, paired with that rule. The notification that just arrived is always included.
+     *
+     * Read-only: nothing here is noted as a match or as a seen chat, because these notifications were
+     * already handled when they arrived.
+     */
+    private fun waitingRules(current: AppRule, currentSbn: StatusBarNotification): List<Pair<AppRule, WaitingApps.Entry>> {
+        val out = mutableListOf(
+            current to WaitingApps.Entry(current.id, currentSbn.packageName, currentSbn.postTime),
+        )
+        val active = runCatching { activeNotifications?.toList() }.getOrNull() ?: return out
+        for (sbn in active) {
+            if (sbn.key == currentSbn.key || sbn.postTime < waitingSinceMs) continue
+            if (isOwnStatusNotification(sbn) || incoming(sbn)) continue
+            runCatching {
+                val info = readMessage(sbn)
+                if (info.isOngoing || info.isGroupSummary) return@runCatching
+                val rule = store.ruleForMessage(info) ?: return@runCatching
+                if (rule.keyword.isNotBlank() && !matchesKeyword(info, rule.keyword)) return@runCatching
+                out += rule to WaitingApps.Entry(rule.id, sbn.packageName, sbn.postTime)
+            }
+        }
+        return out
     }
 
     /**

@@ -394,6 +394,15 @@ class Store private constructor(private val app: Context) {
     private val _respectDnd = MutableStateFlow(prefs.getBoolean("respectDnd", true))
     val respectDnd: StateFlow<Boolean> = _respectDnd.asStateFlow()
 
+    /** Off by default: when on, a notification glows every waiting app rather than only its own rule. */
+    private val _waitingGlow = MutableStateFlow(prefs.getBoolean("waitingGlow", false))
+    val waitingGlow: StateFlow<Boolean> = _waitingGlow.asStateFlow()
+
+    private val _waitingGlowMs = MutableStateFlow(
+        WaitingApps.safeDurationMs(prefs.getInt("waitingGlowMs", WaitingApps.DEFAULT_DURATION_MS))
+    )
+    val waitingGlowMs: StateFlow<Int> = _waitingGlowMs.asStateFlow()
+
     private val _suppression = MutableStateFlow<Suppression?>(null)
     val suppression: StateFlow<Suppression?> = _suppression.asStateFlow()
 
@@ -890,6 +899,16 @@ class Store private constructor(private val app: Context) {
     fun setRespectDnd(v: Boolean) {
         _respectDnd.value = v
         prefs.edit().putBoolean("respectDnd", v).apply()
+    }
+
+    fun setWaitingGlow(v: Boolean) {
+        _waitingGlow.value = v
+        prefs.edit().putBoolean("waitingGlow", v).apply()
+    }
+
+    fun setWaitingGlowMs(v: Int) {
+        _waitingGlowMs.value = WaitingApps.safeDurationMs(v)
+        prefs.edit().putInt("waitingGlowMs", _waitingGlowMs.value).apply()
     }
 
     fun setPriority(v: Int) {
@@ -1444,6 +1463,44 @@ class Store private constructor(private val app: Context) {
     }
 
     /**
+     * One glow across every waiting app, one section each, in place of [trigger]'s own alert.
+     *
+     * The glow stands in for the triggering rule's alert, so it passes exactly the gates that alert
+     * would have — screen-off and face-down rules, Do Not Disturb, quiet hours and battery — and it is
+     * owned the same way, so dismissing that notification or unlocking cuts it short.
+     */
+    fun fireWaitingGlow(trigger: AppRule, sections: List<Int>, owner: String) {
+        if (Looper.myLooper() != main.looper) {
+            main.post {
+                runCatching { fireWaitingGlow(trigger, sections, owner) }
+                    .onFailure { Log.w(TAG, "waiting glow failed", it) }
+            }
+            return
+        }
+        if (!_enabled.value) return
+        if (trigger.onlyWhenScreenOff && screenOn()) return
+        if (_respectDnd.value && deviceSignals.shouldSuppressForDnd) return
+        if (trigger.onlyWhenFaceDown && !isFaceDownNow()) return
+        if (guardState().alertSuppression() != null) return
+        val durationMs = _waitingGlowMs.value
+        holdAlert(
+            alert = WaitingApps.glowAlert(
+                id = Bridge.nextAlertId(),
+                leds = WaitingApps.ledColours(sections),
+                durationMs = durationMs,
+                brightness = trigger.brightness,
+            ),
+            durationMs = durationMs,
+            arm = false,               // like any notification, this must not extend the ambient window
+            preview = null,
+            source = AlertSource.NOTIFICATION,
+            faceDownGated = trigger.onlyWhenFaceDown,
+            screenOffGated = trigger.onlyWhenScreenOff,
+            owner = owner,
+        )
+    }
+
+    /**
      * Takes the transient top layer, for [durationMs], and schedules its release.
      *
      * A notification alert and a Test preview share this one slot because the renderer has one too;
@@ -1537,6 +1594,24 @@ class Store private constructor(private val app: Context) {
             Bridge.lookAlertJson(Bridge.nextAlertId(), look, durationMs, AlertSource.PREVIEW),
             durationMs, arm = true, preview = look, source = AlertSource.PREVIEW,
         )
+    }
+
+    /**
+     * The Test button for the waiting-apps glow. Returns why it could not play, or null once it has.
+     *
+     * The same shape and duration as the real glow, but a preview: it may light the array with control
+     * off, as every Test button does, and still respects quiet hours and the battery guards.
+     */
+    fun previewWaitingGlow(sections: List<Int>): Suppression? {
+        previewSuppressionReason()?.let { return it }
+        val durationMs = _waitingGlowMs.value
+        holdAlert(
+            WaitingApps.glowAlert(
+                Bridge.nextAlertId(), WaitingApps.ledColours(sections), durationMs, 1f, AlertSource.PREVIEW,
+            ),
+            durationMs, arm = true, preview = WaitingApps.previewLook(sections), source = AlertSource.PREVIEW,
+        )
+        return null
     }
 
     internal fun cancelOwnedAlert(owner: String) {

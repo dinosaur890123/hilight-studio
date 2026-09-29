@@ -228,6 +228,8 @@ fun AppRulesScreen(store: Store) {
         confirmButton = { TextButton(onClick = { backupMessage = null }) { Text(stringResource(R.string.common_close)) } },
     ) }
 
+    WaitingAppsSection(store)
+
     PrivacyRulesSection(
         rules = privacyRules,
         onAdd = {

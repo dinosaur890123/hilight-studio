@@ -22,6 +22,7 @@ Control the eight-LED HiLight array on Pixel 11 Pro devices.
 - Solid colours and animated patterns across all eight LEDs, including two-colour Aurora,
   Crossfade and Marquee effects, Twinkle and Candle
 - Per-app rules for foreground use and notifications
+- An optional waiting apps glow that shows every app with a waiting notification at once, colour-coded
 - Optional global or per-notification **face-down only** rules, with a first-use caution and live
   position status
 - Customisable microphone and camera activity rules, with any built-in animation and colour, for any

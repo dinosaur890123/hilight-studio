@@ -16,6 +16,13 @@ All notable changes to HiLight Studio are documented here.
 - Presets now show their colours and which one is in use. Each preset's menu can apply, overwrite with
   the current look, rename, reorder, share on its own, or delete it after confirmation. Deleting no
   longer happens from a single tap on the chip.
+- Added an optional **waiting apps glow** (Apps tab, off by default). When a notification arrives
+  while more than one app is waiting, the LEDs glow once for 3, 5 or 8 seconds with a section in each
+  app's rule colour, softly blended into the next. Up to four apps are shown in rule order, and the app
+  that just notified always keeps a section. With one app waiting, its rule's own look plays as before.
+  Only notifications since the last unlock count, nothing repeats, and the glow passes the same
+  screen-off, face-down, Do Not Disturb, quiet-hours and battery gates as the rule it replaces. It
+  reuses the existing Breathe renderer path with per-LED colours, so no renderer change is involved.
 - Existing duration, brightness, rest and cleanup limits apply to every new effect unchanged.
 
 ## 1.0.15-rc.1 — 2026-09-20
