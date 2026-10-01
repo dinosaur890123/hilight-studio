@@ -18,6 +18,8 @@
     <string name="tab_style">スタイル</string>
     <!-- "Apps" -->
     <string name="tab_apps">アプリ</string>
+    <!-- "Extras" -->
+    <string name="tab_extras">エクストラ</string>
     <!-- "Setup" -->
     <string name="tab_setup">設定</string>
 

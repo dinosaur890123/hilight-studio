@@ -60,6 +60,8 @@ object Bridge {
         stateRevision: Long = 0,
         /** Opaque one-shot id; absent from every ordinary renderer document. */
         manualBlackClearRequestId: Long? = null,
+        /** Ring position → hardware LED from the LED map; absent while unmapped. */
+        ledOrder: List<Int>? = null,
     ): String =
         JSONObject().apply {
             put("v", 2)
@@ -70,6 +72,7 @@ object Bridge {
             put("arm", arm)
             put("dim", dim.toDouble())
             put("ambient", ambient.toJson())
+            ledOrder?.let { put("ledOrder", JSONArray(it)) }
             put("privacyObserverEnabled", privacyObserverEnabled)
             put("privacyOutputEnabled", privacyOutputEnabled)
             put("privacyRules", JSONArray().also { out ->

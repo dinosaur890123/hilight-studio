@@ -7,6 +7,26 @@
 
     <string name="extras_stop">Stop</string>
 
+    <!-- Extras tab -->
+    <string name="extras_need_control">Turn control on in Live, with the renderer connected, to use these on the LEDs.</string>
+
+    <!-- Map your LEDs -->
+    <string name="ledmap_title">Map your LEDs</string>
+    <string name="ledmap_body">HiLight lights each LED in turn and you tap where it is around the ring. After that, every effect, the compass and per-LED colours travel round the ring in the order you see on screen.</string>
+    <string name="ledmap_status_default">Not mapped yet: using the default order, which has not been confirmed on hardware.</string>
+    <string name="ledmap_status_mapped">Mapped. Effects follow your ring.</string>
+    <string name="ledmap_start">Start mapping</string>
+    <string name="ledmap_reset">Reset</string>
+    <!-- %1$d is the LED being asked about, %2$d how many there are -->
+    <string name="ledmap_step">LED %1$d of %2$d is lit white. Tap where it is.</string>
+    <string name="ledmap_tip">The ring is drawn as seen looking at the back of the phone, top of the phone up. A mirror helps, or ask someone to look.</string>
+    <string name="ledmap_check">A comet is running round the ring. Did it travel smoothly, one LED to the next?</string>
+    <string name="ledmap_undo">Undo</string>
+    <string name="ledmap_again">Play again</string>
+    <!-- Accessibility labels for the ring spots. %1$d is the ring position, %2$d the LED placed there. -->
+    <string name="ledmap_spot_free">Ring position %1$d, free</string>
+    <string name="ledmap_spot_taken">Ring position %1$d, LED %2$d</string>
+
     <!-- Compass -->
     <string name="compass_title">Compass</string>
     <string name="compass_body">Lay the phone screen-down and the LED pointing to magnetic north glows red, with a faint white tail opposite. Runs for one minute and keeps the screen awake.</string>
@@ -17,7 +37,7 @@
     <!-- %1$d is whole seconds left -->
     <string name="compass_remaining">%1$d s left</string>
     <string name="compass_figure_eight">The compass is unsure. Move the phone in a figure of eight to recalibrate it.</string>
-    <string name="compass_calibrate_hint">Needle pointing the wrong way? Point the top of the phone north: the LED nearest the top edge should glow. If another does, turn the needle until it does. Then turn the phone clockwise; if the needle turns the same way, reverse it.</string>
+    <string name="compass_calibrate_hint">Map your LEDs above first and no calibration is needed. Otherwise, needle pointing the wrong way? Point the top of the phone north: the LED nearest the top edge should glow. If another does, turn the needle until it does. Then turn the phone clockwise; if the needle turns the same way, reverse it.</string>
     <string name="compass_turn_left">Turn needle ◀</string>
     <string name="compass_turn_right">Turn needle ▶</string>
     <string name="compass_reverse">Reverse direction</string>

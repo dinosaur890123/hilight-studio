@@ -225,8 +225,6 @@ fun LiveScreen(store: Store) {
         }
     }
 
-    ExtrasSection(store, available = enabled && status.alive)
-
     PixelCard {
         SectionTitle(
             stringResource(R.string.live_rules_title),

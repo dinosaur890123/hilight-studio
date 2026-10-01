@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.DisplaySettings
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.Tune
@@ -101,6 +102,7 @@ private enum class Tab(@StringRes val labelRes: Int, val icon: ImageVector) {
     LIVE(R.string.tab_live, Icons.Rounded.Lightbulb),
     AMBIENT(R.string.tab_style, Icons.Rounded.Tune),
     APPS(R.string.tab_apps, Icons.Rounded.Apps),
+    EXTRAS(R.string.tab_extras, Icons.Rounded.AutoAwesome),
     SETUP(R.string.tab_setup, Icons.Rounded.DisplaySettings),
 }
 
@@ -203,6 +205,7 @@ private fun App(store: Store, startInSetup: Boolean = false) {
                     Tab.LIVE -> LiveScreen(store)
                     Tab.AMBIENT -> AmbientScreen(store)
                     Tab.APPS -> AppRulesScreen(store)
+                    Tab.EXTRAS -> ExtrasScreen(store)
                     Tab.SETUP -> SetupScreen(store)
                 }
                 Spacer(Modifier.height(28.dp))

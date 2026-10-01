@@ -410,6 +410,23 @@ class Store private constructor(private val app: Context) {
     )
     val compassCalibration: StateFlow<Compass.Calibration> = _compassCalibration.asStateFlow()
 
+    /** The saved LED map (ring position → hardware LED), or null while unmapped. */
+    private val _ledOrder = MutableStateFlow(LedMap.decode(prefs.getString("ledOrder", null)))
+    val ledOrder: StateFlow<List<Int>?> = _ledOrder.asStateFlow()
+
+    /**
+     * While the wizard asks "where is this LED?", frames must reach the hardware unmapped. A finished
+     * but unsaved map is tried out through [ledOrderCandidate] before the user keeps it.
+     */
+    private var ledMapping = false
+    private var ledOrderCandidate: List<Int>? = null
+
+    private fun ledOrderToSend(): List<Int>? = when {
+        ledOrderCandidate != null -> ledOrderCandidate
+        ledMapping -> null
+        else -> _ledOrder.value
+    }
+
     /** The breathing session in progress, or null. */
     private val _breathing = MutableStateFlow<BreathingSession?>(null)
     val breathing: StateFlow<BreathingSession?> = _breathing.asStateFlow()
@@ -1738,6 +1755,61 @@ class Store private constructor(private val app: Context) {
         }
     }
 
+    /**
+     * Lights one hardware LED for the LED-map wizard, unmapped, so the user can say where it is.
+     * Each call re-arms the minute it may stay lit; the wizard calls again before that runs out.
+     */
+    fun showMappingLed(hardwareLed: Int) {
+        ledMapping = true
+        ledOrderCandidate = null
+        val look = Ambient(pattern = Pattern.CUSTOM, perLed = LedMap.single(hardwareLed), brightness = 1f)
+        holdAlert(
+            Bridge.lookAlertJson(Bridge.nextAlertId(), look, LED_MAP_HOLD_MS, AlertSource.PREVIEW),
+            LED_MAP_HOLD_MS, arm = false, preview = look, source = AlertSource.PREVIEW, owner = LED_MAP_OWNER,
+        )
+    }
+
+    /** Plays a comet around the ring through a finished but unsaved map, so the user can check it. */
+    fun tryLedMap(order: List<Int>) {
+        if (!LedMap.isPermutation(order)) return
+        ledMapping = true
+        ledOrderCandidate = order
+        val look = Ambient(pattern = Pattern.COMET, color = 0xFF00E5FF.toInt(), speedMs = 1600, brightness = 1f)
+        holdAlert(
+            Bridge.lookAlertJson(Bridge.nextAlertId(), look, LED_MAP_CHECK_MS, AlertSource.PREVIEW),
+            LED_MAP_CHECK_MS, arm = false, preview = look, source = AlertSource.PREVIEW, owner = LED_MAP_OWNER,
+        )
+    }
+
+    /**
+     * Keeps [order] as the LED map. The compass's manual calibration existed only to make up for an
+     * unknown order, so it goes back to neutral now that the order is known.
+     */
+    fun saveLedMap(order: List<Int>) {
+        if (!LedMap.isPermutation(order)) return
+        val stored = order.takeUnless { LedMap.isIdentity(it) }
+        _ledOrder.value = stored
+        prefs.edit().apply {
+            if (stored == null) remove("ledOrder") else putString("ledOrder", LedMap.encode(stored))
+        }.apply()
+        setCompassCalibration(Compass.Calibration())
+        endLedMapping()
+    }
+
+    fun resetLedMap() {
+        _ledOrder.value = null
+        prefs.edit().remove("ledOrder").apply()
+        endLedMapping()
+    }
+
+    /** Leaves the wizard: the saved map (if any) applies again from the next frame. */
+    fun endLedMapping() {
+        val wasMapping = ledMapping
+        ledMapping = false
+        ledOrderCandidate = null
+        if (activeAlertOwner == LED_MAP_OWNER) cancelAlert() else if (wasMapping) pushCurrent(arm = false)
+    }
+
     /** One burst of sparkles for a shake, through the same gates as any other background signal. */
     fun sparkle() {
         if (Looper.myLooper() != main.looper) {
@@ -1807,6 +1879,8 @@ class Store private constructor(private val app: Context) {
      * sight, so backgrounding must leave it alone.
      */
     fun stopPreview() {
+        ledMapping = false
+        ledOrderCandidate = null
         breathingNext?.let { main.removeCallbacks(it) }
         breathingNext = null
         _breathing.value = null
@@ -2117,6 +2191,7 @@ class Store private constructor(private val app: Context) {
             privacyOutputEnabled = privacyAllowed,
             stateRevision = revision,
             manualBlackClearRequestId = effectiveManualRequestId,
+            ledOrder = ledOrderToSend(),
         )
         pushUsingStatus(active, activeStatus, json)
         if ((active.transport == Transport.ADB || active.transport == Transport.ROOT) &&
@@ -3415,6 +3490,9 @@ class Store private constructor(private val app: Context) {
         /** Top-layer owners for the extras, so each can tell whether it still holds the array. */
         const val COMPASS_OWNER = "compass"
         const val BREATHING_OWNER = "breathing"
+        const val LED_MAP_OWNER = "ledmap"
+        private const val LED_MAP_HOLD_MS = 60_000
+        private const val LED_MAP_CHECK_MS = 8_000
 
         private const val TAG = "HiLightStore"
 

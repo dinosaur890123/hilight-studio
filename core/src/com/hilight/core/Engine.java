@@ -77,6 +77,8 @@ public final class Engine {
     private volatile boolean running;
 
     private JSONObject state = new JSONObject();
+    /** Logical-to-hardware LED order from the app's LED map, or null while unmapped. */
+    private int[] ledOrder;
     private JSONObject alert;
     private long alertId = -1;
     private boolean lastFrameWasAlert;
@@ -257,6 +259,7 @@ public final class Engine {
                     )
             );
             dim = Math.max(0.02, Math.min(1.0, o.optDouble("dim", 1.0)));
+            ledOrder = LedOrder.parse(o.optJSONArray("ledOrder"));
             // Only a deliberate user action ("arm") may start a fresh window. Automatic pushes — an
             // alert firing, a foreground override, the app being backgrounded — must not, or the array
             // could be kept lit indefinitely in 30-second increments.
@@ -478,7 +481,7 @@ public final class Engine {
                     );
                     return;
             }
-            int[] frame = renderer.frame(cfg, t, Math.max(1, lights.ledCount()));
+            int[] frame = LedOrder.apply(renderer.frame(cfg, t, Math.max(1, lights.ledCount())), ledOrder);
             int[] output = protect(frame, elapsedRealtime);
 
             // A threshold-dark trough inside an active animation is not the end of that effect. It

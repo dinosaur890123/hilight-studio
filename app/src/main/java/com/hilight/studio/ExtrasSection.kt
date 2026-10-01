@@ -36,7 +36,20 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
-/** The Live tab's playful extras: a compass, a breathing guide and shake-for-sparkles. */
+/** The Extras tab: the LED map first, since it makes everything else line up, then the playful modes. */
+@Composable
+fun ExtrasScreen(store: Store) {
+    val enabled by store.enabled.collectAsStateWithLifecycle()
+    val status by store.status.collectAsStateWithLifecycle()
+    val available = enabled && status.alive
+    if (!available) {
+        PixelCard(tone = 2) { Caption(stringResource(R.string.extras_need_control)) }
+    }
+    LedMapCard(store, available)
+    ExtrasSection(store, available)
+}
+
+/** Compass, breathing guide and shake-for-sparkles. */
 @Composable
 fun ExtrasSection(store: Store, available: Boolean) {
     CompassCard(store, available)
@@ -46,7 +59,7 @@ fun ExtrasSection(store: Store, available: Boolean) {
 
 /** Shows a guard's reason the way every Test button does, or runs [start] when nothing blocks it. */
 @Composable
-private fun rememberGuardedStart(store: Store): (() -> Unit) -> Unit {
+internal fun rememberGuardedStart(store: Store): (() -> Unit) -> Unit {
     val ctx = LocalContext.current
     val res = LocalResources.current
     return remember(store, ctx, res) {

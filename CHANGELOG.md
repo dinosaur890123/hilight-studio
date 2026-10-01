@@ -34,6 +34,11 @@ All notable changes to HiLight Studio are documented here.
   random-coloured Twinkle, through the existing background watcher and the usual guards.
 - Added optional **time-of-day colours** on the Style tab: one- and two-colour looks follow a palette
   from night indigo through dawn, day, sunset and dusk. The saved look itself is unchanged.
+- Added a **Map your LEDs** wizard. It lights each LED in turn, you tap where it sits on the ring,
+  then a comet checks the result before you save. The renderer applies the map to every frame, so
+  effects, rules, the compass and per-LED colours follow the real ring; without a map output is
+  unchanged. Renderer implementation revision is now 11.
+- The compass, breathing guide, shake for sparkles and the LED map now live on a new **Extras** tab.
 - Existing duration, brightness, rest and cleanup limits apply to every new effect unchanged.
 
 ## 1.0.15-rc.1 — 2026-09-20

@@ -4,6 +4,36 @@
     <!-- "Stop" -->
     <string name="extras_stop">停止</string>
 
+    <!-- "Turn control on in Live, with the renderer connected, to use these on the LEDs." -->
+    <string name="extras_need_control">LED で使うには、レンダラーを接続した状態でライブの操作をオンにしてください。</string>
+
+    <!-- "Map your LEDs" -->
+    <string name="ledmap_title">LED の配置を合わせる</string>
+    <!-- "HiLight lights each LED in turn and you tap where it is around the ring. …" -->
+    <string name="ledmap_body">HiLight が LED を 1 つずつ点灯するので、リングのどこにあるかをタップしてください。その後は、すべてのエフェクト、コンパス、LED ごとの色が画面どおりの順番でリングを回ります。</string>
+    <!-- "Not mapped yet: using the default order, which has not been confirmed on hardware." -->
+    <string name="ledmap_status_default">未設定です。実機で確認されていない既定の順番を使っています。</string>
+    <!-- "Mapped. Effects follow your ring." -->
+    <string name="ledmap_status_mapped">設定済みです。エフェクトはリングの並びに従います。</string>
+    <!-- "Start mapping" -->
+    <string name="ledmap_start">配置を合わせる</string>
+    <!-- "Reset" -->
+    <string name="ledmap_reset">リセット</string>
+    <!-- "LED %1$d of %2$d is lit white. Tap where it is." -->
+    <string name="ledmap_step">LED %1$d / %2$d が白く点灯しています。位置をタップしてください。</string>
+    <!-- "The ring is drawn as seen looking at the back of the phone, …" -->
+    <string name="ledmap_tip">リングは端末の背面を、上部を上にして見たときの配置で描かれています。鏡を使うか、誰かに見てもらうと便利です。</string>
+    <!-- "A comet is running round the ring. Did it travel smoothly, one LED to the next?" -->
+    <string name="ledmap_check">コメットがリングを回っています。隣の LED へなめらかに移動しましたか？</string>
+    <!-- "Undo" -->
+    <string name="ledmap_undo">元に戻す</string>
+    <!-- "Play again" -->
+    <string name="ledmap_again">もう一度再生</string>
+    <!-- "Ring position %1$d, free" -->
+    <string name="ledmap_spot_free">リングの位置 %1$d、空き</string>
+    <!-- "Ring position %1$d, LED %2$d" -->
+    <string name="ledmap_spot_taken">リングの位置 %1$d、LED %2$d</string>
+
     <!-- "Compass" -->
     <string name="compass_title">コンパス</string>
     <!-- "Lay the phone screen-down and the LED pointing to magnetic north glows red, …" -->
@@ -19,7 +49,7 @@
     <!-- "The compass is unsure. Move the phone in a figure of eight to recalibrate it." -->
     <string name="compass_figure_eight">方位が不安定です。端末を 8 の字に動かして補正してください。</string>
     <!-- "Needle pointing the wrong way? …" -->
-    <string name="compass_calibrate_hint">針の向きがずれていますか？端末の上部を北に向けると、上端にいちばん近い LED が光るはずです。別の LED が光る場合は、正しい LED が光るまで針を回してください。次に端末を時計回りに回し、針も同じ向きに回る場合は方向を反転してください。</string>
+    <string name="compass_calibrate_hint">先に上の「LED の配置を合わせる」を行えば補正は不要です。そうでない場合、針の向きがずれていますか？端末の上部を北に向けると、上端にいちばん近い LED が光るはずです。別の LED が光る場合は、正しい LED が光るまで針を回してください。次に端末を時計回りに回し、針も同じ向きに回る場合は方向を反転してください。</string>
     <!-- "Turn needle ◀" -->
     <string name="compass_turn_left">針を回す ◀</string>
     <!-- "Turn needle ▶" -->

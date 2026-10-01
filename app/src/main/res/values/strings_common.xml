@@ -16,6 +16,7 @@
     <string name="tab_live">Live</string>
     <string name="tab_style">Style</string>
     <string name="tab_apps">Apps</string>
+    <string name="tab_extras">Extras</string>
     <string name="tab_setup">Setup</string>
 
     <!-- Patterns -->
