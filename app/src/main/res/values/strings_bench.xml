@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    The LED test bench: a power test and a heat-soak test the app runs and measures itself.
+    Format strings use positional arguments.
+-->
+<resources>
+
+    <!-- Test bench (Setup) -->
+    <string name="bench_title">LED test bench</string>
+    <string name="bench_body">Measures how much power the LEDs draw and how warm the phone gets, using the battery\'s own readings. Unplug the phone, take it out of its case and lay it screen-up on a table at room temperature.</string>
+    <string name="bench_unplug">Unplug the charger first: charging hides the LEDs\' power draw and adds its own heat.</string>
+    <string name="bench_no_current">This phone does not report battery current, so only the heat test is available.</string>
+    <string name="bench_power_title">Power test</string>
+    <string name="bench_power_body">About 75 seconds. Each colour runs for 5 seconds between dark steps; keep the phone still and the screen on.</string>
+    <string name="bench_power_start">Run power test</string>
+    <!-- %1$s is a step such as "Red", %2$d its number, %3$d how many there are -->
+    <string name="bench_power_running">%1$s · step %2$d of %3$d</string>
+    <!-- %1$s is a step, %2$.0f its power in milliwatts -->
+    <string name="bench_power_row">%1$s: %2$.0f mW</string>
+    <string name="bench_step_off">Dark</string>
+    <string name="bench_step_red">Red, all 8</string>
+    <string name="bench_step_green">Green, all 8</string>
+    <string name="bench_step_blue">Blue, all 8</string>
+    <string name="bench_step_white_25">White 25%, all 8</string>
+    <string name="bench_step_white_50">White 50%, all 8</string>
+    <string name="bench_step_white_100">White 100%, all 8</string>
+    <string name="bench_step_one_led">White 100%, one LED</string>
+    <string name="bench_heat_title">Heat test</string>
+    <string name="bench_heat_body">15 seconds of baseline, then 10 minutes of full white. At the 10-minute mark it beeps: measure the camera bar and enter the reading. It stops early if the battery reaches 42 °C or Android warns about heat. Then it waits until the phone has cooled before the next run.</string>
+    <string name="bench_run_no_dimming">Full white, dimming off</string>
+    <string name="bench_run_normal">Full white, normal limits</string>
+    <string name="bench_run_control">Control: LEDs off</string>
+    <string name="bench_heat_start">Start heat run</string>
+    <string name="bench_cancel">Cancel run</string>
+    <!-- %1$s the kind of run, %2$.1f battery temperature, %3$s LED power or a dash -->
+    <string name="bench_live">%1$s · battery %2$.1f °C · LEDs %3$s</string>
+    <string name="bench_baseline">Measuring the baseline with the LEDs off…</string>
+    <string name="bench_get_ready">30 seconds to go. Get your thermometer ready.</string>
+    <string name="bench_measure_now">Measure the camera bar now</string>
+    <string name="bench_measure_body">The LEDs stay on for up to one more minute while you measure.</string>
+    <string name="bench_surface_field">Camera bar °C</string>
+    <string name="bench_note_field">Note (optional)</string>
+    <string name="bench_save_reading">Save reading</string>
+    <string name="bench_skip_reading">Skip</string>
+    <!-- %1$s time since the run ended, %2$.1f battery temperature now, %3$.1f the starting temperature -->
+    <string name="bench_cooling">Cooling down · %1$s · battery %2$.1f °C (started at %3$.1f °C)</string>
+    <string name="bench_ready">Cooled down. Ready for the next run.</string>
+    <string name="bench_results">Results</string>
+    <!-- One run: %1$d number, %2$s type, %3$s surface reading or a dash, %4$s battery rise, %5$s LED power or a dash, %6$s why it stopped -->
+    <string name="bench_result_row">Run %1$d · %2$s · bar %3$s · battery +%4$s °C · LEDs %5$s · %6$s</string>
+    <string name="bench_export">Share CSV</string>
+    <string name="bench_clear">Clear results</string>
+    <string name="bench_stop_completed">completed</string>
+    <string name="bench_stop_battery_hot">stopped: battery at 42 °C</string>
+    <string name="bench_stop_thermal">stopped: Android heat warning</string>
+    <string name="bench_stop_interrupted">interrupted</string>
+    <string name="bench_stop_cancelled">cancelled</string>
+    <string name="bench_keep_open">Keep HiLight open on this screen during a run; the screen dims itself to add as little heat as possible.</string>
+    <string name="bench_export_chooser">Share LED test results</string>
+
+</resources>

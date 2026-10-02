@@ -52,6 +52,15 @@ All notable changes to HiLight Studio are documented here.
   the first beat of each bar flashes towards white. No microphone is used. Spin, dice, beat, demo and
   the three new effects are renderer modes; renderer implementation revision is now 13.
 - The on-screen Rainbow now uses the renderer's exact colour maths.
+- Added an **LED test bench** on the Extras tab. A 75-second power test measures each colour's draw
+  from the battery's own current and voltage against dark steps either side. A heat run logs battery
+  temperature, current and Android's thermal status for 10 minutes of full white (or a control run
+  with the LEDs off), beeps at the 10-minute mark for a camera-bar reading, then waits for the phone
+  to cool. Results export as CSV. Runs stop early at 42 °C battery or an Android heat warning.
+- The renderer has a bounded **experiment allowance** for the bench's "dimming off" run only: a
+  user-started test-bench preview may skip the taper and duty rest for at most 11 minutes of light,
+  refilled only after 15 minutes without experiment frames. Everything else is limited exactly as
+  before. Renderer implementation revision is now 14.
 - Existing duration, brightness, rest and cleanup limits apply to every new effect unchanged.
 
 ## 1.0.15-rc.1 — 2026-09-20

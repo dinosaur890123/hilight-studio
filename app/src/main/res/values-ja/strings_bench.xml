@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- "LED test bench" -->
+    <string name="bench_title">LED テストベンチ</string>
+    <!-- "Measures how much power the LEDs draw and how warm the phone gets, …" -->
+    <string name="bench_body">バッテリーの計測値を使って、LED の消費電力と端末の温度上昇を測定します。充電器を外し、ケースから出して、室温のテーブルに画面を上にして置いてください。</string>
+    <!-- "Unplug the charger first: …" -->
+    <string name="bench_unplug">先に充電器を外してください。充電中は LED の消費電力が分からず、充電自体の熱も加わります。</string>
+    <!-- "This phone does not report battery current, so only the heat test is available." -->
+    <string name="bench_no_current">この端末はバッテリー電流を報告しないため、温度テストのみ利用できます。</string>
+    <!-- "Power test" -->
+    <string name="bench_power_title">電力テスト</string>
+    <!-- "About 75 seconds. …" -->
+    <string name="bench_power_body">約 75 秒です。各色を消灯ステップの間に 5 秒ずつ点灯します。端末を動かさず、画面はオンのままにしてください。</string>
+    <!-- "Run power test" -->
+    <string name="bench_power_start">電力テストを実行</string>
+    <!-- "%1$s · step %2$d of %3$d" -->
+    <string name="bench_power_running">%1$s · ステップ %2$d / %3$d</string>
+    <!-- "%1$s: %2$.0f mW" -->
+    <string name="bench_power_row">%1$s：%2$.0f mW</string>
+    <!-- "Dark" -->
+    <string name="bench_step_off">消灯</string>
+    <!-- "Red, all 8" -->
+    <string name="bench_step_red">赤、8 個すべて</string>
+    <!-- "Green, all 8" -->
+    <string name="bench_step_green">緑、8 個すべて</string>
+    <!-- "Blue, all 8" -->
+    <string name="bench_step_blue">青、8 個すべて</string>
+    <!-- "White 25%, all 8" -->
+    <string name="bench_step_white_25">白 25%、8 個すべて</string>
+    <!-- "White 50%, all 8" -->
+    <string name="bench_step_white_50">白 50%、8 個すべて</string>
+    <!-- "White 100%, all 8" -->
+    <string name="bench_step_white_100">白 100%、8 個すべて</string>
+    <!-- "White 100%, one LED" -->
+    <string name="bench_step_one_led">白 100%、LED 1 個</string>
+    <!-- "Heat test" -->
+    <string name="bench_heat_title">温度テスト</string>
+    <!-- "15 seconds of baseline, then 10 minutes of full white. …" -->
+    <string name="bench_heat_body">15 秒間の基準測定のあと、白を最大で 10 分間点灯します。10 分の時点でビープ音が鳴るので、カメラバーを測定して入力してください。バッテリーが 42 °C に達するか、Android が熱の警告を出すと途中で停止します。その後、端末が冷えるまで待ってから次の測定に進みます。</string>
+    <!-- "Full white, dimming off" -->
+    <string name="bench_run_no_dimming">白 最大、減光オフ</string>
+    <!-- "Full white, normal limits" -->
+    <string name="bench_run_normal">白 最大、通常の制限</string>
+    <!-- "Control: LEDs off" -->
+    <string name="bench_run_control">対照：LED オフ</string>
+    <!-- "Start heat run" -->
+    <string name="bench_heat_start">温度テストを開始</string>
+    <!-- "Cancel run" -->
+    <string name="bench_cancel">中止</string>
+    <!-- "%1$s · battery %2$.1f °C · LEDs %3$s" -->
+    <string name="bench_live">%1$s · バッテリー %2$.1f °C · LED %3$s</string>
+    <!-- "Measuring the baseline with the LEDs off…" -->
+    <string name="bench_baseline">LED を消灯した状態で基準を測定中…</string>
+    <!-- "30 seconds to go. Get your thermometer ready." -->
+    <string name="bench_get_ready">残り 30 秒です。温度計を用意してください。</string>
+    <!-- "Measure the camera bar now" -->
+    <string name="bench_measure_now">今すぐカメラバーを測定してください</string>
+    <!-- "The LEDs stay on for up to one more minute while you measure." -->
+    <string name="bench_measure_body">測定中は最大 1 分間、LED を点灯したままにします。</string>
+    <!-- "Camera bar °C" -->
+    <string name="bench_surface_field">カメラバーの温度 (°C)</string>
+    <!-- "Note (optional)" -->
+    <string name="bench_note_field">メモ（任意）</string>
+    <!-- "Save reading" -->
+    <string name="bench_save_reading">記録を保存</string>
+    <!-- "Skip" -->
+    <string name="bench_skip_reading">スキップ</string>
+    <!-- "Cooling down · %1$s · battery %2$.1f °C (started at %3$.1f °C)" -->
+    <string name="bench_cooling">冷却中 · %1$s · バッテリー %2$.1f °C（開始時 %3$.1f °C）</string>
+    <!-- "Cooled down. Ready for the next run." -->
+    <string name="bench_ready">冷えました。次の測定を開始できます。</string>
+    <!-- "Results" -->
+    <string name="bench_results">結果</string>
+    <!-- "Run %1$d · %2$s · bar %3$s · battery +%4$s °C · LEDs %5$s · %6$s" -->
+    <string name="bench_result_row">測定 %1$d · %2$s · バー %3$s · バッテリー +%4$s °C · LED %5$s · %6$s</string>
+    <!-- "Share CSV" -->
+    <string name="bench_export">CSV を共有</string>
+    <!-- "Clear results" -->
+    <string name="bench_clear">結果を消去</string>
+    <!-- "completed" -->
+    <string name="bench_stop_completed">完了</string>
+    <!-- "stopped: battery at 42 °C" -->
+    <string name="bench_stop_battery_hot">停止：バッテリー 42 °C</string>
+    <!-- "stopped: Android heat warning" -->
+    <string name="bench_stop_thermal">停止：Android の熱警告</string>
+    <!-- "interrupted" -->
+    <string name="bench_stop_interrupted">中断</string>
+    <!-- "cancelled" -->
+    <string name="bench_stop_cancelled">中止</string>
+    <!-- "Keep HiLight open on this screen during a run; …" -->
+    <string name="bench_keep_open">測定中は HiLight のこの画面を開いたままにしてください。発熱を抑えるため、画面は自動で暗くなります。</string>
+    <!-- "Share LED test results" -->
+    <string name="bench_export_chooser">LED テスト結果を共有</string>
+
+</resources>

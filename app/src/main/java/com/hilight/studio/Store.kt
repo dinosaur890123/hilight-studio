@@ -1889,6 +1889,38 @@ class Store private constructor(private val app: Context) {
         main.postDelayed(r, (next ?: duration).toLong())
     }
 
+    // ------------------------------------------------------------------ test bench
+
+    /** Runs the LED power and heat tests; created on first use. */
+    val bench: TestBenchRunner by lazy { TestBenchRunner(app, this, main) }
+
+    /**
+     * One test-bench frame, held for [durationMs]. [first] starts a run and is refused while a guard
+     * would block a Test; later frames only while the bench still owns the top layer. A dark frame
+     * still holds the layer, so the always-on look cannot leak into a reading. [experiment] asks the
+     * renderer for its bounded no-dimming allowance.
+     */
+    internal fun showBenchFrame(leds: List<Int>, durationMs: Int, experiment: Boolean, first: Boolean): Boolean {
+        if (Looper.myLooper() != main.looper) return false
+        if (first) {
+            if (previewSuppressionReason() != null) return false
+            stopBeat()
+            stopBreathing()
+            _party.value = null
+        } else if (activeAlertOwner != BENCH_OWNER) {
+            return false
+        }
+        val look = Ambient(pattern = Pattern.CUSTOM, perLed = leds, brightness = 1f)
+        val alert = Bridge.lookAlertJson(Bridge.nextAlertId(), look, durationMs, AlertSource.PREVIEW)
+        if (experiment) alert.put("experiment", true)
+        holdAlert(alert, durationMs, arm = false, preview = look, source = AlertSource.PREVIEW, owner = BENCH_OWNER)
+        return true
+    }
+
+    internal fun benchOwnsOutput(): Boolean = activeAlertOwner == BENCH_OWNER
+
+    internal fun stopBenchOutput() = cancelOwnedAlert(BENCH_OWNER)
+
     /** One burst of sparkles for a shake, through the same gates as any other background signal. */
     fun sparkle() {
         if (Looper.myLooper() != main.looper) {
@@ -3576,6 +3608,7 @@ class Store private constructor(private val app: Context) {
         const val LED_MAP_OWNER = "ledmap"
         const val PARTY_OWNER = "party"
         const val BEAT_OWNER = "beat"
+        const val BENCH_OWNER = "bench"
         private const val LED_MAP_HOLD_MS = 60_000
         private const val LED_MAP_CHECK_MS = 8_000
 

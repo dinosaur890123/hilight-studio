@@ -48,6 +48,7 @@ fun ExtrasScreen(store: Store) {
     LedMapCard(store, available)
     PartySection(store, available)
     ExtrasSection(store, available)
+    TestBenchCard(store, available)
 }
 
 /** Compass, breathing guide and shake-for-sparkles. */

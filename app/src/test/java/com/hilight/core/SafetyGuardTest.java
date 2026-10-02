@@ -70,4 +70,41 @@ public final class SafetyGuardTest {
 
         assertArrayEquals(new int[]{Renderer.scale(RED[0], 0.5)}, guard.apply(RED, 0, 0.5));
     }
+
+    @Test
+    public void experimentFramesSkipTaperAndDutyOnlyWithinTheirAllowance() {
+        // duty window 100 at 50%, taper after 20; experiment allowance 60, cooldown 100
+        SafetyGuard guard = new SafetyGuard(100, 0.5, 20, 20, 0.5, 60, 100);
+
+        // 50 ms of light would normally exhaust this duty window and 20 ms would start the taper
+        for (int now = 0; now <= 50; now += 10) assertArrayEquals(RED, guard.apply(RED, now, 1.0, true));
+        // allowance spent: the ordinary limits apply again, and the duty window is already over
+        assertArrayEquals(new int[]{0}, guard.apply(RED, 60, 1.0, true));
+        assertTrue(guard.isResting());
+    }
+
+    @Test
+    public void experimentAllowanceRefillsOnlyAfterTheCooldown() {
+        SafetyGuard guard = new SafetyGuard(1_000_000, 0.5, 20, 20, 0.5, 30, 100);
+
+        for (int now = 0; now <= 30; now += 10) guard.apply(RED, now, 1.0, true);
+        // a short pause is not enough: still spent, so the taper applies
+        guard.apply(new int[]{0}, 40, 1.0, false);
+        assertArrayEquals(RED, guard.apply(RED, 60, 1.0, true));
+        int[] later = guard.apply(RED, 90, 1.0, true);
+        assertTrue(later[0] != RED[0]);
+
+        // a full cooldown without experiment frames refills it
+        guard.apply(new int[]{0}, 100, 1.0, false);
+        for (int now = 200; now <= 220; now += 10) assertArrayEquals(RED, guard.apply(RED, now, 1.0, true));
+    }
+
+    @Test
+    public void ordinaryFramesNeverUseTheExperimentAllowance() {
+        SafetyGuard guard = new SafetyGuard(1_000, 0.5, 20, 20, 0.5, 600, 100);
+
+        assertArrayEquals(RED, guard.apply(RED, 0, 1.0, false));
+        assertArrayEquals(RED, guard.apply(RED, 20, 1.0, false));
+        assertArrayEquals(new int[]{Renderer.scale(RED[0], 0.75)}, guard.apply(RED, 30, 1.0, false));
+    }
 }

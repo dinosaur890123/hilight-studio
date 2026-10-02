@@ -217,6 +217,7 @@ cannot bypass the UI ceiling:
 | Open-ended holds ("while open") | Not configurable | capped at the auto-off value |
 | Duty cycle | Not configurable | at most 50% of any 10-minute window |
 | Sustained brightness | Not configurable | eases to 55% after 10 s of unbroken light |
+| Test-bench experiment | Off; only a user-started test-bench preview | skips taper and duty rest for at most 11 min of light, refilled after 15 min without experiments |
 
 Two details that matter:
 

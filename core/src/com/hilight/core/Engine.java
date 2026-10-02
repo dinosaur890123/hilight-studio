@@ -482,7 +482,11 @@ public final class Engine {
                     return;
             }
             int[] frame = LedOrder.apply(renderer.frame(cfg, t, Math.max(1, lights.ledCount())), ledOrder);
-            int[] output = protect(frame, elapsedRealtime);
+            // Only a user-started test-bench preview may ask for the bounded experiment allowance.
+            boolean experiment = cfg == alert && alert != null
+                    && alert.optBoolean("experiment", false)
+                    && "preview".equals(alert.optString("source", ""));
+            int[] output = safety.apply(frame, elapsedRealtime, dim, experiment);
 
             // A threshold-dark trough inside an active animation is not the end of that effect. It
             // must close the normal render session so Android can use the LEDs, but must not spend
