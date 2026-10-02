@@ -7,7 +7,7 @@
 
     <!-- Test bench (Setup) -->
     <string name="bench_title">LED test bench</string>
-    <string name="bench_body">Measures how much power the LEDs draw and how warm the phone gets, using the battery\'s own readings. Unplug the phone, take it out of its case and lay it screen-up on a table at room temperature.</string>
+    <string name="bench_body">Measures how much power the LEDs draw and how warm the phone gets, using the battery\'s own readings. Unplug the phone, take it out of its case and lay it screen-down on a table at room temperature, so the LEDs face up as in normal use. At the beep, measure the camera bar, then turn the phone over to enter the reading.</string>
     <string name="bench_unplug">Unplug the charger first: charging hides the LEDs\' power draw and adds its own heat.</string>
     <string name="bench_no_current">This phone does not report battery current, so only the heat test is available.</string>
     <string name="bench_power_title">Power test</string>

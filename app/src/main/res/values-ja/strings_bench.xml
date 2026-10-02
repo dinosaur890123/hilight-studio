@@ -4,7 +4,7 @@
     <!-- "LED test bench" -->
     <string name="bench_title">LED テストベンチ</string>
     <!-- "Measures how much power the LEDs draw and how warm the phone gets, …" -->
-    <string name="bench_body">バッテリーの計測値を使って、LED の消費電力と端末の温度上昇を測定します。充電器を外し、ケースから出して、室温のテーブルに画面を上にして置いてください。</string>
+    <string name="bench_body">バッテリーの計測値を使って、LED の消費電力と端末の温度上昇を測定します。充電器を外し、ケースから出して、室温のテーブルに画面を下にして置いてください（通常の使い方と同じく LED が上を向きます）。ビープ音が鳴ったらカメラバーを測定し、端末を裏返して値を入力してください。</string>
     <!-- "Unplug the charger first: …" -->
     <string name="bench_unplug">先に充電器を外してください。充電中は LED の消費電力が分からず、充電自体の熱も加わります。</string>
     <!-- "This phone does not report battery current, so only the heat test is available." -->
