@@ -22,6 +22,9 @@
     <string name="look_ocean">Ocean</string>
     <string name="look_ember">Ember</string>
     <string name="look_calm">Calm</string>
+    <string name="look_nebula">Nebula</string>
+    <string name="look_fireworks">Fireworks</string>
+    <string name="look_orbit">Orbit</string>
     <string name="look_prism">Prism</string>
 
     <!-- The two colours of a two-colour effect -->

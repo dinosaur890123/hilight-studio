@@ -3,6 +3,7 @@ package com.hilight.studio
 import androidx.annotation.StringRes
 import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.exp
 import kotlin.math.floor
@@ -117,15 +118,58 @@ object PartyModes {
         put("source", AlertSource.PREVIEW.key)
     }
 
-    fun beatFrame(beatMs: Int, elapsedMs: Long, n: Int = LED_COUNT): IntArray {
+    /** The move a bar of four beats dances: 0 pulse, 1 chase, 2 sweep, 3 split. */
+    fun beatMove(beat: Long): Int = ((beat / 4) % 4).toInt()
+
+    fun beatFrame(beatMs: Int, elapsedMs: Long, n: Int = LED_COUNT, palette: List<Int> = BEAT_COLOURS): IntArray {
         val out = IntArray(n)
         val ms = beatMs.toLong().coerceIn(250, 2000)
         val beat = elapsedMs / ms
         val phase = (elapsedMs % ms) / ms.toDouble()
-        val env = if (phase < 0.08) phase / 0.08 else if (phase < 0.7) exp(-(phase - 0.08) * 5) else 0.0
-        val c = BEAT_COLOURS[(beat % BEAT_COLOURS.size).toInt()]
-        val accent = (beat % n).toInt()
-        for (i in 0 until n) out[i] = Renderer.scale(c, (if (i == accent) 1.0 else 0.45) * env)
+        if (phase >= 0.8) return out
+        val len = palette.size
+        var c = palette[(beat % len).toInt()]
+        var c2 = palette[((beat + len / 2) % len).toInt()]
+        if (beat % 4 == 0L && phase < 0.15) {
+            val flash = 0.6 * (1 - phase / 0.15)
+            c = Renderer.mix(c, 0xFFFFFFFF.toInt(), flash)
+            c2 = Renderer.mix(c2, 0xFFFFFFFF.toInt(), flash)
+        }
+        val env = if (phase < 0.06) phase / 0.06 else exp(-(phase - 0.06) * 3)
+        val x = phase / 0.8
+        val glide = 1 - (1 - x) * (1 - x)
+        when (beatMove(beat)) {
+            0 -> {
+                val accent = (beat % n).toInt()
+                for (i in 0 until n) out[i] = Renderer.scale(c, (if (i == accent) 1.0 else 0.45) * env)
+            }
+            1 -> {
+                val head = (beat * 2 + glide * 2) % n
+                for (i in 0 until n) {
+                    var d1 = abs(i - head)
+                    d1 = min(d1, n - d1)
+                    var d2 = abs(i - (head + n / 2.0) % n)
+                    d2 = min(d2, n - d2)
+                    out[i] = Renderer.add(
+                        Renderer.scale(c, max(0.0, 1 - d1 / 1.5)),
+                        Renderer.scale(c2, max(0.0, 1 - d2 / 1.5)),
+                    )
+                }
+            }
+            2 -> {
+                val pos = (if (beat % 2 == 0L) glide else 1 - glide) * (n - 1)
+                for (i in 0 until n) {
+                    val g = Renderer.mix(c, c2, if (n == 1) 0.0 else i / (n - 1).toDouble())
+                    out[i] = Renderer.scale(g, max(0.0, 1 - abs(i - pos) / 1.5))
+                }
+            }
+            else -> {
+                val even = beat % 2 == 0L
+                for (i in 0 until n) {
+                    if ((i % 2 == 0) == even) out[i] = Renderer.scale(if (even) c else c2, env)
+                }
+            }
+        }
         return out
     }
 
@@ -135,15 +179,13 @@ object PartyModes {
 
     /** A tour of the best effects; every scene opens with a short dark gap, as the renderer plays it. */
     val DEMO: List<Scene> = listOf(
-        Scene(R.string.pattern_rainbow, Ambient(pattern = Pattern.RAINBOW, speedMs = 2_500, brightness = 1f)),
-        Scene(R.string.pattern_aurora, Ambient(pattern = Pattern.AURORA, color = 0xFF00E676.toInt(), secondColor = 0xFF7C4DFF.toInt(), speedMs = 3_500, brightness = 1f)),
-        Scene(R.string.pattern_comet, Ambient(pattern = Pattern.COMET, color = 0xFF00E5FF.toInt(), speedMs = 1_100, brightness = 1f)),
-        Scene(R.string.pattern_marquee, Ambient(pattern = Pattern.MARQUEE, color = 0xFFFF4081.toInt(), secondColor = 0xFF40C4FF.toInt(), speedMs = 1_400, brightness = 1f)),
-        Scene(R.string.pattern_converge, Ambient(pattern = Pattern.CONVERGE, color = 0xFFFFAB00.toInt(), speedMs = 1_500, brightness = 1f)),
-        Scene(R.string.pattern_twinkle, Ambient(pattern = Pattern.TWINKLE, color = 0xFF40C4FF.toInt(), speedMs = 1_500, brightness = 1f)),
-        Scene(R.string.pattern_candle, Ambient(pattern = Pattern.CANDLE, color = 0xFFFF8F00.toInt(), speedMs = 1_600, brightness = 1f)),
-        Scene(R.string.pattern_crossfade, Ambient(pattern = Pattern.CROSSFADE, color = 0xFFFF6D00.toInt(), secondColor = 0xFFD500F9.toInt(), speedMs = 2_200, brightness = 1f)),
-        Scene(R.string.pattern_radar, Ambient(pattern = Pattern.RADAR, color = 0xFF7C4DFF.toInt(), speedMs = 900, brightness = 1f)),
+        Scene(R.string.pattern_plasma, Ambient(pattern = Pattern.PLASMA, speedMs = 4_000, brightness = 1f), 5_000),
+        Scene(R.string.pattern_aurora, Ambient(pattern = Pattern.AURORA, color = 0xFF00E676.toInt(), secondColor = 0xFF7C4DFF.toInt(), speedMs = 3_500, brightness = 1f), 5_000),
+        Scene(R.string.pattern_orbit, Ambient(pattern = Pattern.ORBIT, color = 0xFF00E5FF.toInt(), secondColor = 0xFFFF4081.toInt(), speedMs = 1_600, brightness = 1f), 4_500),
+        Scene(R.string.pattern_converge, Ambient(pattern = Pattern.CONVERGE, color = 0xFFFFAB00.toInt(), speedMs = 1_500, brightness = 1f), 4_000),
+        Scene(R.string.pattern_twinkle, Ambient(pattern = Pattern.TWINKLE, color = 0xFF40C4FF.toInt(), speedMs = 1_500, brightness = 1f), 4_500),
+        Scene(R.string.pattern_fireworks, Ambient(pattern = Pattern.FIREWORKS, speedMs = 1_500, brightness = 1f), 6_000),
+        Scene(R.string.pattern_rainbow, Ambient(pattern = Pattern.RAINBOW, speedMs = 1_800, brightness = 1f), 5_000),
     )
 
     const val DEMO_GAP_MS = 200L

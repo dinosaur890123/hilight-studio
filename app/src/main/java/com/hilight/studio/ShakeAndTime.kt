@@ -91,7 +91,9 @@ object TimeOfDay {
 
     /** Effects with colours of their own (rainbow, random, per-LED) are left exactly as they are. */
     fun appliesTo(pattern: Pattern): Boolean =
-        pattern !in setOf(Pattern.OFF, Pattern.RAINBOW, Pattern.RANDOM, Pattern.CUSTOM)
+        pattern !in setOf(
+            Pattern.OFF, Pattern.RAINBOW, Pattern.RANDOM, Pattern.CUSTOM, Pattern.PLASMA, Pattern.FIREWORKS,
+        )
 
     fun apply(look: Ambient, minuteOfDay: Int): Ambient {
         if (!appliesTo(look.pattern)) return look

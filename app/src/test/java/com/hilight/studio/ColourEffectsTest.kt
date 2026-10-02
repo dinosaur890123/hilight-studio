@@ -49,7 +49,7 @@ class ColourEffectsTest {
             }
         }
         assertEquals(
-            setOf(Pattern.GRADIENT, Pattern.AURORA, Pattern.CROSSFADE, Pattern.MARQUEE),
+            setOf(Pattern.GRADIENT, Pattern.AURORA, Pattern.CROSSFADE, Pattern.MARQUEE, Pattern.ORBIT),
             Pattern.entries.filter { it.usesSecondColor }.toSet(),
         )
     }

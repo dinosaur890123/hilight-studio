@@ -47,6 +47,9 @@
     <string name="pattern_marquee">Marquee</string>
     <string name="pattern_twinkle">Twinkle</string>
     <string name="pattern_candle">Candle</string>
+    <string name="pattern_plasma">Plasma</string>
+    <string name="pattern_orbit">Orbit</string>
+    <string name="pattern_fireworks">Fireworks</string>
     <string name="pattern_random">Random colours</string>
     <string name="pattern_custom">Per-LED custom</string>
 
@@ -71,6 +74,9 @@
     <string name="cycle_twinkle">About one sparkle per LED, each on its own rhythm.</string>
     <string name="cycle_candle">Six flickers of the flame. Shorter is more restless.</string>
 
+    <string name="cycle_plasma">One full drift of the colour waves round the ring.</string>
+    <string name="cycle_orbit">One lap for each comet, travelling in opposite directions.</string>
+    <string name="cycle_fireworks">One firework: launch, burst and fading embers.</string>
     <!-- Why the array is being held dark -->
     <string name="suppression_quiet_hours">Quiet hours</string>
     <string name="test_blocked_by_guard">Test blocked: %1$s</string>

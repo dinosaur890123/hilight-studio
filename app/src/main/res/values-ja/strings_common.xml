@@ -72,6 +72,12 @@
     <string name="pattern_twinkle">きらめき</string>
     <!-- "Candle" -->
     <string name="pattern_candle">キャンドル</string>
+    <!-- "Plasma" -->
+    <string name="pattern_plasma">プラズマ</string>
+    <!-- "Orbit" -->
+    <string name="pattern_orbit">オービット</string>
+    <!-- "Fireworks" -->
+    <string name="pattern_fireworks">花火</string>
     <!-- "Random colours" -->
     <string name="pattern_random">ランダムな色</string>
     <!-- "Per-LED custom" -->
@@ -117,6 +123,12 @@
     <!-- "Six flickers of the flame. Shorter is more restless." -->
     <string name="cycle_candle">炎が 6 回揺らめきます。短いほど落ち着きがなくなります。</string>
 
+    <!-- "One full drift of the colour waves round the ring." -->
+    <string name="cycle_plasma">色の波がリングを 1 周流れます。</string>
+    <!-- "One lap for each comet, travelling in opposite directions." -->
+    <string name="cycle_orbit">2 つのコメットが逆方向にそれぞれ 1 周します。</string>
+    <!-- "One firework: launch, burst and fading embers." -->
+    <string name="cycle_fireworks">花火 1 発分です。打ち上げ、炸裂、消えていく火花まで。</string>
     <!-- Why the array is being held dark -->
     <!-- "Quiet hours" -->
     <string name="suppression_quiet_hours">サイレント時間</string>

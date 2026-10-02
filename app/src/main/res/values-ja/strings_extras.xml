@@ -59,7 +59,7 @@
     <!-- "Tap tempo" -->
     <string name="tempo_title">タップテンポ</string>
     <!-- "Tap along to the music and the ring pulses on the beat, …" -->
-    <string name="tempo_body">音楽に合わせてタップすると、リングが拍ごとに色を変えて点滅します。タップを続けるとずれを補正します。マイクは使いません。</string>
+    <string name="tempo_body">音楽に合わせてタップすると、リングが拍に合わせて踊ります。拍ごとに色が変わり、小節の頭で白く光り、4 拍ごとに動きが変わります。タップを続けるとずれを補正します。マイクは使いません。</string>
     <!-- "Tap to the beat" -->
     <string name="tempo_tap_here">リズムに合わせてタップ</string>
     <!-- "Keep tapping: it starts on the third tap." -->
@@ -70,6 +70,17 @@
     <string name="tempo_half">半分の速さ</string>
     <!-- "Double speed" -->
     <string name="tempo_double">2 倍の速さ</string>
+
+    <!-- "Pulse" -->
+    <string name="tempo_move_pulse">パルス</string>
+    <!-- "Chase" -->
+    <string name="tempo_move_chase">チェイス</string>
+    <!-- "Sweep" -->
+    <string name="tempo_move_sweep">スイープ</string>
+    <!-- "Split" -->
+    <string name="tempo_move_split">スプリット</string>
+    <!-- "%1$s · beat %2$d of 4" -->
+    <string name="tempo_now">%1$s · %2$d / 4 拍目</string>
 
     <!-- "Compass" -->
     <string name="compass_title">コンパス</string>

@@ -72,7 +72,7 @@ object Renderer {
                 val phase = (t % speed) / speed.toDouble()
                 for (i in 0 until n) {
                     val h = (phase + if (cfg.rainbowSpread) i.toDouble() / n else 0.0) * 360.0
-                    out[i] = hsv((h % 360).toFloat())
+                    out[i] = hsvExact(h % 360, 1f, 1f)
                 }
             }
 
@@ -215,6 +215,54 @@ object Renderer {
                 }
             }
 
+            Pattern.PLASMA -> {
+                val phase = (t % speed) / speed.toDouble()
+                val len = PartyModes.WHEEL.size
+                for (i in 0 until n) {
+                    val x = i / n.toDouble()
+                    val v = sin(2 * PI * (x + phase)) +
+                        sin(2 * PI * (2 * x - phase)) +
+                        sin(2 * PI * (3 * x + 2 * phase))
+                    out[i] = wheelAt((v + 3) / 6 * len + phase * len)
+                }
+            }
+
+            Pattern.ORBIT -> {
+                val phase = (t % speed) / speed.toDouble()
+                val p1 = phase * n
+                val p2 = (1 - phase) * n
+                for (i in 0 until n) {
+                    var d1 = p1 - i
+                    if (d1 < 0) d1 += n
+                    var d2 = i - p2
+                    while (d2 < 0) d2 += n
+                    while (d2 >= n) d2 -= n
+                    out[i] = add(scale(base, max(0.0, 1 - d1 / 3.0)), scale(cfg.secondColor, max(0.0, 1 - d2 / 3.0)))
+                }
+            }
+
+            Pattern.FIREWORKS -> {
+                val cycle = t / speed
+                val phase = (t % speed) / speed.toDouble()
+                val wheel = PartyModes.WHEEL
+                val centre = floor(noise(cycle, 99) * n).toInt() % n
+                val c = wheel[floor(noise(cycle, 98) * wheel.size).toInt() % wheel.size]
+                val bright = mix(c, 0xFFFFFFFF.toInt(), 0.5)
+                if (phase < 0.2) {
+                    out[centre] = scale(bright, phase / 0.2 * 0.6)
+                } else if (phase < 0.3) {
+                    val reach = (phase - 0.2) / 0.1 * (n / 2.0)
+                    for (i in 0 until n) if (ringDistance(i, centre, n) <= reach) out[i] = bright
+                } else {
+                    val fade = 1 - (phase - 0.3) / 0.7
+                    val step = t / 70
+                    for (i in 0 until n) {
+                        val sparkle = if (noise(step, i) > 0.4) 1.0 else 0.35
+                        out[i] = scale(c, fade * fade * sparkle)
+                    }
+                }
+            }
+
             Pattern.RANDOM -> {
                 // deterministic stand-in so the preview animates without flickering randomly
                 val step = t / max(120, cfg.randomIntervalMs).toLong()
@@ -228,6 +276,28 @@ object Renderer {
         val b = cfg.brightness.toDouble()
         if (b < 1.0) for (i in 0 until n) out[i] = scale(out[i], b)
         return out
+    }
+
+    /** Mirrors the renderer's wheel-palette lookup, blending between neighbouring colours. */
+    fun wheelAt(u: Double): Int {
+        val wheel = PartyModes.WHEEL
+        val len = wheel.size
+        val w = ((u % len) + len) % len
+        val i = floor(w).toInt() % len
+        return mix(wheel[i], wheel[(i + 1) % len], w - floor(w))
+    }
+
+    /** Mirrors the renderer's additive blend: channels add and saturate. */
+    fun add(a: Int, b: Int): Int {
+        val r = min(255, ((a shr 16) and 0xFF) + ((b shr 16) and 0xFF))
+        val g = min(255, ((a shr 8) and 0xFF) + ((b shr 8) and 0xFF))
+        val bl = min(255, (a and 0xFF) + (b and 0xFF))
+        return (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
+    }
+
+    fun ringDistance(i: Int, centre: Int, n: Int): Double {
+        val d = abs(i - centre)
+        return min(d, n - d).toDouble()
     }
 
     /** Mirrors the renderer's marquee band width. */
@@ -256,6 +326,25 @@ object Renderer {
         val g = (((a shr 8) and 0xFF) * (1 - kk) + ((b shr 8) and 0xFF) * kk).toInt()
         val bl = ((a and 0xFF) * (1 - kk) + (b and 0xFF) * kk).toInt()
         return (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
+    }
+
+    /** The renderer's own double-precision HSV, so the rainbow on screen matches the LEDs exactly. */
+    fun hsvExact(h: Double, s: Float, v: Float): Int {
+        val c = (v * s).toDouble()
+        val x = c * (1 - abs((h / 60) % 2 - 1))
+        val m = v.toDouble() - c
+        val (r, g, b) = when ((h / 60).toInt() % 6) {
+            0 -> Triple(c, x, 0.0)
+            1 -> Triple(x, c, 0.0)
+            2 -> Triple(0.0, c, x)
+            3 -> Triple(0.0, x, c)
+            4 -> Triple(x, 0.0, c)
+            else -> Triple(c, 0.0, x)
+        }
+        return (0xFF shl 24) or
+            (((r + m) * 255).toInt() shl 16) or
+            (((g + m) * 255).toInt() shl 8) or
+            ((b + m) * 255).toInt()
     }
 
     fun hsv(h: Float, s: Float = 1f, v: Float = 1f): Int {

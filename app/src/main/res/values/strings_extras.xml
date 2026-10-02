@@ -44,13 +44,21 @@
 
     <!-- Tap tempo -->
     <string name="tempo_title">Tap tempo</string>
-    <string name="tempo_body">Tap along to the music and the ring pulses on the beat, a new colour each time. Keep tapping to stay in sync. No microphone is used.</string>
+    <string name="tempo_body">Tap along to the music and the ring dances on the beat: a new colour every beat, a white flash on each bar, and a new move every four beats. Keep tapping to stay in sync. No microphone is used.</string>
     <string name="tempo_tap_here">Tap to the beat</string>
     <string name="tempo_keep_tapping">Keep tapping: it starts on the third tap.</string>
     <!-- %1$d is beats per minute -->
     <string name="tempo_bpm">%1$d BPM</string>
     <string name="tempo_half">Half speed</string>
     <string name="tempo_double">Double speed</string>
+
+    <!-- The four tap-tempo moves; one plays per bar of four beats. -->
+    <string name="tempo_move_pulse">Pulse</string>
+    <string name="tempo_move_chase">Chase</string>
+    <string name="tempo_move_sweep">Sweep</string>
+    <string name="tempo_move_split">Split</string>
+    <!-- %1$s is the move, %2$d the beat within the bar (1 to 4) -->
+    <string name="tempo_now">%1$s · beat %2$d of 4</string>
 
     <!-- Compass -->
     <string name="compass_title">Compass</string>

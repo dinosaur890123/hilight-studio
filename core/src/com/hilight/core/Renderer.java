@@ -298,6 +298,61 @@ public final class Renderer {
                 break;
             }
 
+            case "plasma": {
+                // Interfering waves mapped onto the wheel palette: a flowing, ever-changing colour field.
+                double phase = (t % speed) / (double) speed;
+                for (int i = 0; i < n; i++) {
+                    double x = i / (double) n;
+                    double v = Math.sin(2 * Math.PI * (x + phase))
+                            + Math.sin(2 * Math.PI * (2 * x - phase))
+                            + Math.sin(2 * Math.PI * (3 * x + 2 * phase));
+                    out[i] = wheelAt((v + 3) / 6 * WHEEL.length + phase * WHEEL.length);
+                }
+                break;
+            }
+
+            case "orbit": {
+                // Two comets circling in opposite directions; where they cross, their light adds up.
+                int a = palette[0];
+                int b = palette.length > 1 ? palette[1] : a;
+                double phase = (t % speed) / (double) speed;
+                double p1 = phase * n;
+                double p2 = (1 - phase) * n;
+                for (int i = 0; i < n; i++) {
+                    double d1 = p1 - i;
+                    if (d1 < 0) d1 += n;
+                    double d2 = i - p2;
+                    while (d2 < 0) d2 += n;
+                    while (d2 >= n) d2 -= n;
+                    out[i] = add(scale(a, Math.max(0, 1 - d1 / 3.0)), scale(b, Math.max(0, 1 - d2 / 3.0)));
+                }
+                break;
+            }
+
+            case "fireworks": {
+                // One firework per cycle: a launch glow, a burst racing out across the ring, then
+                // sparkling embers that fade to dark. Position and colour change every burst.
+                long cycle = t / speed;
+                double phase = (t % speed) / (double) speed;
+                int centre = (int) Math.floor(noise(cycle, 99) * n) % n;
+                int c = WHEEL[(int) Math.floor(noise(cycle, 98) * WHEEL.length) % WHEEL.length];
+                int flare = mix(c, 0xFFFFFFFF, 0.5);
+                if (phase < 0.2) {
+                    out[centre] = scale(flare, phase / 0.2 * 0.6);
+                } else if (phase < 0.3) {
+                    double reach = (phase - 0.2) / 0.1 * (n / 2.0);
+                    for (int i = 0; i < n; i++) if (ringDistance(i, centre, n) <= reach) out[i] = flare;
+                } else {
+                    double fade = 1 - (phase - 0.3) / 0.7;
+                    long step = t / 70;
+                    for (int i = 0; i < n; i++) {
+                        double sparkle = noise(step, i) > 0.4 ? 1.0 : 0.35;
+                        out[i] = scale(c, fade * fade * sparkle);
+                    }
+                }
+                break;
+            }
+
             case "breathing": {
                 // A guided breath: fill LED by LED on the inhale, hold full, empty on the exhale while
                 // easing to the second colour, then rest dark. timeOffsetMs lets a long session be sent
@@ -359,16 +414,58 @@ public final class Renderer {
             }
 
             case "beat": {
-                // Tap tempo: one pulse per beat in the next colour, with an accent LED that steps
-                // round the ring each beat. The last 30% of every beat is dark.
+                // Tap tempo choreography. Each bar of four beats has its own move (pulse, chase,
+                // sweep, split), the colour changes every beat, the first beat of a bar flashes
+                // towards white, and the last fifth of every beat is dark.
                 long beatMs = clampLong(cfg.optLong("beatMs", 500), 250, 2000);
                 long tt = t + Math.max(0, cfg.optLong("timeOffsetMs", 0));
                 long beat = tt / beatMs;
                 double phase = (tt % beatMs) / (double) beatMs;
-                double env = phase < 0.08 ? phase / 0.08 : phase < 0.7 ? Math.exp(-(phase - 0.08) * 5) : 0;
-                int c = palette[(int) (beat % palette.length)];
-                int accent = (int) (beat % n);
-                for (int i = 0; i < n; i++) out[i] = scale(c, (i == accent ? 1.0 : 0.45) * env);
+                if (phase >= 0.8) break;
+                int len = palette.length;
+                int c = palette[(int) (beat % len)];
+                int c2 = palette[(int) ((beat + len / 2) % len)];
+                if (beat % 4 == 0 && phase < 0.15) {
+                    double flash = 0.6 * (1 - phase / 0.15);
+                    c = mix(c, 0xFFFFFFFF, flash);
+                    c2 = mix(c2, 0xFFFFFFFF, flash);
+                }
+                double env = phase < 0.06 ? phase / 0.06 : Math.exp(-(phase - 0.06) * 3);
+                double x = phase / 0.8;
+                double glide = 1 - (1 - x) * (1 - x);
+                switch ((int) ((beat / 4) % 4)) {
+                    case 0: { // pulse with an accent stepping round the ring
+                        int accent = (int) (beat % n);
+                        for (int i = 0; i < n; i++) out[i] = scale(c, (i == accent ? 1.0 : 0.45) * env);
+                        break;
+                    }
+                    case 1: { // two heads glide two LEDs per beat, opposite each other
+                        double head = (beat * 2 + glide * 2) % n;
+                        for (int i = 0; i < n; i++) {
+                            double d1 = Math.abs(i - head);
+                            d1 = Math.min(d1, n - d1);
+                            double d2 = Math.abs(i - (head + n / 2.0) % n);
+                            d2 = Math.min(d2, n - d2);
+                            out[i] = add(scale(c, Math.max(0, 1 - d1 / 1.5)), scale(c2, Math.max(0, 1 - d2 / 1.5)));
+                        }
+                        break;
+                    }
+                    case 2: { // a band sweeps across the array and back on alternate beats
+                        double pos = (beat % 2 == 0 ? glide : 1 - glide) * (n - 1);
+                        for (int i = 0; i < n; i++) {
+                            int g = mix(c, c2, n == 1 ? 0 : i / (double) (n - 1));
+                            out[i] = scale(g, Math.max(0, 1 - Math.abs(i - pos) / 1.5));
+                        }
+                        break;
+                    }
+                    default: { // alternate halves of the ring flash in alternate colours
+                        boolean even = beat % 2 == 0;
+                        for (int i = 0; i < n; i++) {
+                            if ((i % 2 == 0) == even) out[i] = scale(even ? c : c2, env);
+                        }
+                        break;
+                    }
+                }
                 break;
             }
 
@@ -480,6 +577,27 @@ public final class Renderer {
         x *= 0x27BB2EE687B0B0FDL;
         x ^= x >>> 29;
         return (x >>> 11) / (double) (1L << 53);
+    }
+
+    /** A colour from the wheel palette at a fractional position, blending between neighbours. */
+    static int wheelAt(double u) {
+        int len = WHEEL.length;
+        double w = ((u % len) + len) % len;
+        int i = (int) Math.floor(w) % len;
+        return mix(WHEEL[i], WHEEL[(i + 1) % len], w - Math.floor(w));
+    }
+
+    /** Light from two sources on one LED: channels add and saturate. */
+    static int add(int a, int b) {
+        int r = Math.min(255, ((a >> 16) & 0xFF) + ((b >> 16) & 0xFF));
+        int g = Math.min(255, ((a >> 8) & 0xFF) + ((b >> 8) & 0xFF));
+        int bl = Math.min(255, (a & 0xFF) + (b & 0xFF));
+        return 0xFF000000 | (r << 16) | (g << 8) | bl;
+    }
+
+    static double ringDistance(int i, int centre, int n) {
+        int d = Math.abs(i - centre);
+        return Math.min(d, n - d);
     }
 
     private static long clampLong(long v, long min, long max) {

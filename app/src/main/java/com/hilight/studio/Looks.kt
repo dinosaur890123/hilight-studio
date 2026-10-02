@@ -49,6 +49,18 @@ object Looks {
             Ambient(pattern = Pattern.BREATHE, color = 0xFF7C4DFF.toInt(), speedMs = 5000),
         ),
         FeaturedLook(
+            "nebula", R.string.look_nebula,
+            Ambient(pattern = Pattern.PLASMA, speedMs = 5000),
+        ),
+        FeaturedLook(
+            "fireworks", R.string.look_fireworks,
+            Ambient(pattern = Pattern.FIREWORKS, speedMs = 1800),
+        ),
+        FeaturedLook(
+            "orbit", R.string.look_orbit,
+            Ambient(pattern = Pattern.ORBIT, color = 0xFF00E5FF.toInt(), secondColor = 0xFFFF4081.toInt(), speedMs = 1800),
+        ),
+        FeaturedLook(
             "prism", R.string.look_prism,
             Ambient(pattern = Pattern.RAINBOW, speedMs = 3000),
         ),
@@ -58,6 +70,7 @@ object Looks {
     private val surprisePatterns = listOf(
         Pattern.AURORA, Pattern.CROSSFADE, Pattern.MARQUEE, Pattern.TWINKLE, Pattern.CANDLE,
         Pattern.BREATHE, Pattern.WAVE, Pattern.COMET, Pattern.RADAR, Pattern.GRADIENT,
+        Pattern.ORBIT, Pattern.PLASMA, Pattern.FIREWORKS,
     )
 
     /**
@@ -80,7 +93,7 @@ object Looks {
             color = first,
             secondColor = second,
             speedMs = when (pattern) {
-                Pattern.TWINKLE, Pattern.CANDLE, Pattern.MARQUEE -> 1200 + random.nextInt(1800)
+                Pattern.TWINKLE, Pattern.CANDLE, Pattern.MARQUEE, Pattern.ORBIT, Pattern.FIREWORKS -> 1200 + random.nextInt(1800)
                 else -> 2500 + random.nextInt(4000)
             },
         )
@@ -124,6 +137,7 @@ object Looks {
     fun swatches(look: Ambient): List<Int> = when (look.pattern) {
         Pattern.OFF -> emptyList()
         Pattern.RAINBOW -> listOf(0f, 90f, 180f, 270f).map { Renderer.hsv(it) }
+        Pattern.PLASMA, Pattern.FIREWORKS -> listOf(0, 2, 4, 6).map { PartyModes.WHEEL[it] }
         Pattern.RANDOM -> listOf(30f, 150f, 270f).map { Renderer.hsv(it, look.randomSaturation) }
         Pattern.CUSTOM -> look.perLed.distinct().take(4)
         else -> if (look.pattern.usesSecondColor) {

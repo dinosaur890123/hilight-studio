@@ -246,6 +246,22 @@ private fun TapTempoCard(store: Store, available: Boolean) {
         }
         if (current != null) {
             LedFrameStrip(opaque(PartyModes.beatFrame(current.beatMs, elapsed)), stringResource(R.string.tempo_title), heightDp = 34)
+            val beat = elapsed / current.beatMs
+            Text(
+                stringResource(
+                    R.string.tempo_now,
+                    stringResource(
+                        when (PartyModes.beatMove(beat)) {
+                            0 -> R.string.tempo_move_pulse
+                            1 -> R.string.tempo_move_chase
+                            2 -> R.string.tempo_move_sweep
+                            else -> R.string.tempo_move_split
+                        }
+                    ),
+                    (beat % 4 + 1).toInt(),
+                ),
+                style = MaterialTheme.typography.titleMedium,
+            )
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 TextButton(onClick = { blocked(store.startBeat(TapTempo.scaled(current.beatMs, 2.0))) }) {
                     ButtonLabel(stringResource(R.string.tempo_half))

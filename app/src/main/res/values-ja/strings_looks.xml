@@ -26,6 +26,12 @@
     <string name="look_ember">残り火</string>
     <!-- "Calm" -->
     <string name="look_calm">穏やか</string>
+    <!-- "Nebula" -->
+    <string name="look_nebula">星雲</string>
+    <!-- "Fireworks" -->
+    <string name="look_fireworks">花火</string>
+    <!-- "Orbit" -->
+    <string name="look_orbit">オービット</string>
     <!-- "Prism" -->
     <string name="look_prism">プリズム</string>
 

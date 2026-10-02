@@ -41,7 +41,7 @@ class PartyModesTest {
     }
 
     @Test
-    fun `beat pulses in time, steps colour and accent, and rests dark each beat`() {
+    fun `beat dances a new move each bar, changes colour each beat and rests dark`() {
         for (beatMs in listOf(300, 500, 1_200)) for (offset in listOf(0L, 50_000L)) {
             val json = PartyModes.beatAlert(1, beatMs, offset, 53_000)
             for (t in (0L..6_000L step 23L)) {
@@ -49,12 +49,45 @@ class PartyModesTest {
                     PartyModes.beatFrame(beatMs, offset + t), core.frame(json, t, LED_COUNT))
             }
         }
-        val beat = 500L
-        assertEquals(0, lit(PartyModes.beatFrame(500, (beat * 0.8).toLong())))
-        val first = PartyModes.beatFrame(500, 40)
-        val second = PartyModes.beatFrame(500, beat + 40)
-        assertTrue(first[0] != first[1])
-        assertTrue(second[1] != second[0])
+        // the last fifth of every beat is dark, which keeps resetting the brightness taper
+        for (b in 0L until 32L) assertEquals(0, lit(PartyModes.beatFrame(500, b * 500 + 420)))
+        // each bar of four beats dances a different move
+        assertEquals(listOf(0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 0), (0L..16L).map { PartyModes.beatMove(it) })
+        // colour changes every beat
+        val colours = (0L until 6L).map { b -> PartyModes.beatFrame(500, b * 500 + 40).maxByOrNull { (it shr 16 and 0xFF) + (it shr 8 and 0xFF) + (it and 0xFF) } }
+        assertEquals(6, colours.toSet().size)
+        // the chase glides: mid-beat differs from the start of the beat
+        assertTrue(!PartyModes.beatFrame(500, 4 * 500 + 30).contentEquals(PartyModes.beatFrame(500, 4 * 500 + 250)))
+    }
+
+    @Test
+    fun `rainbow now matches the LEDs exactly on screen too`() {
+        for (spread in listOf(true, false)) for (speed in listOf(700, 2_500)) {
+            val look = Ambient(pattern = Pattern.RAINBOW, speedMs = speed, rainbowSpread = spread, brightness = 1f)
+            for (t in 0L..6_000L step 13L) {
+                assertArrayEquals("spread=$spread t=$t", Renderer.frame(Pattern.RAINBOW, t, look), core.frame(look.toJson(), t, LED_COUNT))
+            }
+        }
+    }
+
+    @Test
+    fun `plasma, orbit and fireworks match on screen and on the LEDs`() {
+        for (pattern in listOf(Pattern.PLASMA, Pattern.ORBIT, Pattern.FIREWORKS)) for (speed in listOf(60, 1_500, 4_000)) {
+            for (brightness in listOf(0.3f, 1f)) {
+                val look = Ambient(pattern = pattern, color = 0xFF00E5FF.toInt(), secondColor = 0xFFFF4081.toInt(), speedMs = speed, brightness = brightness)
+                for (t in (0L..9_000L step 31L) + listOf(8_000_000_000L)) {
+                    assertArrayEquals("$pattern speed=$speed t=$t", Renderer.frame(pattern, t, look), core.frame(look.toJson(), t, LED_COUNT))
+                }
+            }
+        }
+        // fireworks end each burst dark and burst somewhere different
+        val fw = Ambient(pattern = Pattern.FIREWORKS, speedMs = 1_000, brightness = 1f)
+        assertEquals(0, lit(Renderer.frame(Pattern.FIREWORKS, 999, fw)))
+        assertEquals(LED_COUNT, lit(Renderer.frame(Pattern.FIREWORKS, 300, fw)))
+        // orbit's comets cross: at half a cycle they meet and their light adds up
+        val orbit = Ambient(pattern = Pattern.ORBIT, color = 0xFFFF0000.toInt(), secondColor = 0xFF0000FF.toInt(), speedMs = 1_000, brightness = 1f)
+        val meet = Renderer.frame(Pattern.ORBIT, 500, orbit)
+        assertTrue(meet.any { (it shr 16 and 0xFF) > 200 && (it and 0xFF) > 200 })
     }
 
     @Test

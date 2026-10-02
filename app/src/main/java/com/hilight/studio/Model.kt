@@ -69,6 +69,12 @@ enum class Pattern(
     ),
     TWINKLE("twinkle", R.string.pattern_twinkle, cycleMeaningRes = R.string.cycle_twinkle),
     CANDLE("candle", R.string.pattern_candle, cycleMeaningRes = R.string.cycle_candle),
+    PLASMA("plasma", R.string.pattern_plasma, cycleMeaningRes = R.string.cycle_plasma),
+    ORBIT(
+        "orbit", R.string.pattern_orbit, cycleMeaningRes = R.string.cycle_orbit,
+        usesSecondColor = true,
+    ),
+    FIREWORKS("fireworks", R.string.pattern_fireworks, cycleMeaningRes = R.string.cycle_fireworks),
     RANDOM("random", R.string.pattern_random, usesSpeed = false),
     CUSTOM("custom", R.string.pattern_custom, usesSpeed = false);
 
