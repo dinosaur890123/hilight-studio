@@ -46,6 +46,7 @@ fun ExtrasScreen(store: Store) {
         PixelCard(tone = 2) { Caption(stringResource(R.string.extras_need_control)) }
     }
     LedMapCard(store, available)
+    PartySection(store, available)
     ExtrasSection(store, available)
 }
 

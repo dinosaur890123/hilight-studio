@@ -427,6 +427,18 @@ class Store private constructor(private val app: Context) {
         else -> _ledOrder.value
     }
 
+    /** The spin, dice roll or demo reel playing now, for the on-screen strip; null when none. */
+    private val _party = MutableStateFlow<PartySession?>(null)
+    val party: StateFlow<PartySession?> = _party.asStateFlow()
+
+    /** The tap-tempo session pulsing now, or null. */
+    private val _beat = MutableStateFlow<BeatSession?>(null)
+    val beat: StateFlow<BeatSession?> = _beat.asStateFlow()
+    private var beatNext: Runnable? = null
+
+    /** While the dice card listens for a shake to roll, a shake must not also fire sparkles. */
+    var diceShakeListening = false
+
     /** The breathing session in progress, or null. */
     private val _breathing = MutableStateFlow<BreathingSession?>(null)
     val breathing: StateFlow<BreathingSession?> = _breathing.asStateFlow()
@@ -1710,6 +1722,8 @@ class Store private constructor(private val app: Context) {
     fun startBreathing(rhythm: BreathingRhythm, totalMs: Int): Suppression? {
         previewSuppressionReason()?.let { return it }
         stopBreathing()
+        stopBeat()
+        _party.value = null
         val session = BreathingSession(rhythm, SystemClock.elapsedRealtime(), totalMs)
         _breathing.value = session
         sendBreathingSegment(session, BreathingGuide.segments(totalMs), 0)
@@ -1810,13 +1824,78 @@ class Store private constructor(private val app: Context) {
         if (activeAlertOwner == LED_MAP_OWNER) cancelAlert() else if (wasMapping) pushCurrent(arm = false)
     }
 
+    /**
+     * Plays one party mode (spin, dice or demo reel) as a Test would: refused with the reason when a
+     * guard blocks it, ended when the app leaves the screen.
+     */
+    fun playParty(session: PartySession, alert: JSONObject, preview: Ambient): Suppression? {
+        previewSuppressionReason()?.let { return it }
+        stopBeat()
+        stopBreathing()
+        _party.value = session
+        holdAlert(alert, session.totalMs, arm = true, preview = preview, source = AlertSource.PREVIEW, owner = PARTY_OWNER)
+        return null
+    }
+
+    fun stopParty() {
+        _party.value = null
+        cancelOwnedAlert(PARTY_OWNER)
+    }
+
+    /**
+     * Starts (or re-syncs) tap-tempo pulses at [beatMs], with beat one landing now. Sent as
+     * overlapping segments, like the breathing guide, so it can outlast the one-minute alert cap.
+     */
+    fun startBeat(beatMs: Int): Suppression? {
+        if (activeAlertOwner != BEAT_OWNER) previewSuppressionReason()?.let { return it }
+        beatNext?.let { main.removeCallbacks(it) }
+        beatNext = null
+        _party.value = null
+        val session = BeatSession(beatMs, SystemClock.elapsedRealtime())
+        _beat.value = session
+        sendBeatSegment(session, BreathingGuide.segments(PartyModes.BEAT_SESSION_MS), 0)
+        return null
+    }
+
+    fun stopBeat() {
+        beatNext?.let { main.removeCallbacks(it) }
+        beatNext = null
+        val wasRunning = _beat.value != null
+        _beat.value = null
+        if (wasRunning) cancelOwnedAlert(BEAT_OWNER)
+    }
+
+    private fun sendBeatSegment(session: BeatSession, segments: List<Triple<Long, Int, Int?>>, index: Int) {
+        if (_beat.value !== session) return
+        if (index > 0 && activeAlertOwner != BEAT_OWNER) {
+            _beat.value = null
+            return
+        }
+        val (offset, duration, next) = segments.getOrNull(index) ?: return
+        holdAlert(
+            PartyModes.beatAlert(Bridge.nextAlertId(), session.beatMs, offset, duration),
+            duration,
+            arm = index == 0,
+            preview = Ambient(pattern = Pattern.PULSE, color = PartyModes.BEAT_COLOURS.first(), speedMs = session.beatMs),
+            source = AlertSource.PREVIEW,
+            owner = BEAT_OWNER,
+        )
+        val r = if (next != null) {
+            Runnable { sendBeatSegment(session, segments, index + 1) }
+        } else {
+            Runnable { if (_beat.value === session) _beat.value = null }
+        }
+        beatNext = r
+        main.postDelayed(r, (next ?: duration).toLong())
+    }
+
     /** One burst of sparkles for a shake, through the same gates as any other background signal. */
     fun sparkle() {
         if (Looper.myLooper() != main.looper) {
             main.post { sparkle() }
             return
         }
-        if (!_shakeSparkles.value) return
+        if (!_shakeSparkles.value || diceShakeListening) return
         showDeviceSignal(
             ShakeDetector.OWNER,
             ShakeDetector.sparkleLook(kotlin.random.Random.nextInt(360).toFloat()),
@@ -1879,6 +1958,10 @@ class Store private constructor(private val app: Context) {
      * sight, so backgrounding must leave it alone.
      */
     fun stopPreview() {
+        beatNext?.let { main.removeCallbacks(it) }
+        beatNext = null
+        _beat.value = null
+        _party.value = null
         ledMapping = false
         ledOrderCandidate = null
         breathingNext?.let { main.removeCallbacks(it) }
@@ -3491,6 +3574,8 @@ class Store private constructor(private val app: Context) {
         const val COMPASS_OWNER = "compass"
         const val BREATHING_OWNER = "breathing"
         const val LED_MAP_OWNER = "ledmap"
+        const val PARTY_OWNER = "party"
+        const val BEAT_OWNER = "beat"
         private const val LED_MAP_HOLD_MS = 60_000
         private const val LED_MAP_CHECK_MS = 8_000
 

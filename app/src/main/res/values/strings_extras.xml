@@ -27,6 +27,31 @@
     <string name="ledmap_spot_free">Ring position %1$d, free</string>
     <string name="ledmap_spot_taken">Ring position %1$d, LED %2$d</string>
 
+    <!-- Demo reel. demo_body: %1$d scenes, %2$d seconds. demo_now: scene %1$d of %2$d, named %3$s. -->
+    <string name="demo_title">Demo reel</string>
+    <string name="demo_body">A %1$d-scene light show through the best effects, about %2$d seconds. Lay the phone screen-down and press play.</string>
+    <string name="demo_play">Play the show</string>
+    <string name="demo_now">%1$d / %2$d · %3$s</string>
+
+    <!-- Party pack -->
+    <string name="party_title">Party pack</string>
+    <string name="party_body">Put the phone screen-down in the middle of the table. Spin the wheel to pick who goes next, or roll a die: the pips light up around the ring.</string>
+    <string name="party_spin">Spin the wheel</string>
+    <string name="party_roll">Roll the die</string>
+    <string name="party_shake_to_roll">Shake to roll (while this screen is open)</string>
+    <!-- %1$d is the number rolled, 1 to 6 -->
+    <string name="party_rolled">Rolled a %1$d</string>
+
+    <!-- Tap tempo -->
+    <string name="tempo_title">Tap tempo</string>
+    <string name="tempo_body">Tap along to the music and the ring pulses on the beat, a new colour each time. Keep tapping to stay in sync. No microphone is used.</string>
+    <string name="tempo_tap_here">Tap to the beat</string>
+    <string name="tempo_keep_tapping">Keep tapping: it starts on the third tap.</string>
+    <!-- %1$d is beats per minute -->
+    <string name="tempo_bpm">%1$d BPM</string>
+    <string name="tempo_half">Half speed</string>
+    <string name="tempo_double">Double speed</string>
+
     <!-- Compass -->
     <string name="compass_title">Compass</string>
     <string name="compass_body">Lay the phone screen-down and the LED pointing to magnetic north glows red, with a faint white tail opposite. Runs for one minute and keeps the screen awake.</string>

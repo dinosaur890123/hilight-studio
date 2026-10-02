@@ -34,6 +34,43 @@
     <!-- "Ring position %1$d, LED %2$d" -->
     <string name="ledmap_spot_taken">リングの位置 %1$d、LED %2$d</string>
 
+    <!-- "Demo reel" -->
+    <string name="demo_title">デモリール</string>
+    <!-- "A %1$d-scene light show through the best effects, about %2$d seconds. …" -->
+    <string name="demo_body">おすすめのエフェクトを %1$d シーンでつなぐ、約 %2$d 秒のライトショーです。画面を下にして置き、再生してください。</string>
+    <!-- "Play the show" -->
+    <string name="demo_play">ショーを再生</string>
+    <!-- "%1$d / %2$d · %3$s" -->
+    <string name="demo_now">%1$d / %2$d · %3$s</string>
+
+    <!-- "Party pack" -->
+    <string name="party_title">パーティーパック</string>
+    <!-- "Put the phone screen-down in the middle of the table. …" -->
+    <string name="party_body">画面を下にしてテーブルの真ん中に置きましょう。ルーレットで次の人を決めたり、サイコロを振ったりできます。出た目はリングに点で表示されます。</string>
+    <!-- "Spin the wheel" -->
+    <string name="party_spin">ルーレットを回す</string>
+    <!-- "Roll the die" -->
+    <string name="party_roll">サイコロを振る</string>
+    <!-- "Shake to roll (while this screen is open)" -->
+    <string name="party_shake_to_roll">振ってサイコロ（この画面を開いている間）</string>
+    <!-- "Rolled a %1$d" -->
+    <string name="party_rolled">出た目は %1$d</string>
+
+    <!-- "Tap tempo" -->
+    <string name="tempo_title">タップテンポ</string>
+    <!-- "Tap along to the music and the ring pulses on the beat, …" -->
+    <string name="tempo_body">音楽に合わせてタップすると、リングが拍ごとに色を変えて点滅します。タップを続けるとずれを補正します。マイクは使いません。</string>
+    <!-- "Tap to the beat" -->
+    <string name="tempo_tap_here">リズムに合わせてタップ</string>
+    <!-- "Keep tapping: it starts on the third tap." -->
+    <string name="tempo_keep_tapping">そのまま続けてください。3 回目のタップで始まります。</string>
+    <!-- "%1$d BPM" -->
+    <string name="tempo_bpm">%1$d BPM</string>
+    <!-- "Half speed" -->
+    <string name="tempo_half">半分の速さ</string>
+    <!-- "Double speed" -->
+    <string name="tempo_double">2 倍の速さ</string>
+
     <!-- "Compass" -->
     <string name="compass_title">コンパス</string>
     <!-- "Lay the phone screen-down and the LED pointing to magnetic north glows red, …" -->

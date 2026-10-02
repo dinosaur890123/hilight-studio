@@ -39,6 +39,14 @@ All notable changes to HiLight Studio are documented here.
   effects, rules, the compass and per-LED colours follow the real ring; without a map output is
   unchanged. Renderer implementation revision is now 11.
 - The compass, breathing guide, shake for sparkles and the LED map now live on a new **Extras** tab.
+- Added a **demo reel** on the Extras tab: a 41-second light show through nine effects. Each scene
+  opens with a short dark gap and fades in and out, so the show stays at full brightness without
+  any change to the safety limits.
+- Added a **party pack**: spin the wheel (a light races round the ring and stops on one LED) and a
+  die whose pips light up around the ring, with optional shake-to-roll while the card is open.
+- Added **tap tempo**: tap along to music and the ring pulses on the beat, changing colour each beat,
+  for up to five minutes. No microphone is used. Spin, dice, beat and demo are renderer modes;
+  renderer implementation revision is now 12.
 - Existing duration, brightness, rest and cleanup limits apply to every new effect unchanged.
 
 ## 1.0.15-rc.1 — 2026-09-20

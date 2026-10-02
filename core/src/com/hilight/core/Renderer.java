@@ -16,6 +16,15 @@ import java.util.Random;
  */
 public final class Renderer {
 
+    /** One colour per LED for the spin-the-wheel mode, like the segments of a prize wheel. */
+    static final int[] WHEEL = {
+            0xFFFF1744, 0xFFFF6D00, 0xFFFFD600, 0xFF00E676,
+            0xFF00E5FF, 0xFF2979FF, 0xFF7C4DFF, 0xFFFF4081,
+    };
+
+    static final long DEMO_GAP_MS = 200;
+    static final double DEMO_FADE_MS = 350.0;
+
     /** Width, in LEDs, of one colour-pair period of the marquee bands. */
     static final int MARQUEE_BAND = 4;
 
@@ -311,6 +320,83 @@ public final class Renderer {
                 break;
             }
 
+            case "spin": {
+                // Spin the wheel: a light races round the ring, slows, and stops on "target", which
+                // then glows. Every LED has its own colour from WHEEL, like segments of a prize wheel.
+                long spinMs = clampLong(cfg.optLong("spinMs", 4500), 1000, 10000);
+                int turns = (int) clampLong(cfg.optInt("turns", 4), 1, 10);
+                int target = Math.floorMod(cfg.optInt("target", 0), n);
+                if (t < spinMs) {
+                    double x = t / (double) spinMs;
+                    double eased = 1 - (1 - x) * (1 - x) * (1 - x);
+                    double head = (turns * (double) n + target) * eased % n;
+                    for (int i = 0; i < n; i++) {
+                        double d = head - i;
+                        if (d < 0) d += n;
+                        out[i] = scale(WHEEL[i % WHEEL.length], Math.max(0, 1 - d / 2.0));
+                    }
+                } else {
+                    double k = 0.5 + 0.5 * Math.cos(2 * Math.PI * ((t - spinMs) / 700.0));
+                    out[target] = scale(WHEEL[target % WHEEL.length], 0.3 + 0.7 * k);
+                }
+                break;
+            }
+
+            case "dice": {
+                // A tumble of random LEDs that slows down, then the value as evenly spaced pips.
+                long rollMs = clampLong(cfg.optLong("rollMs", 1400), 300, 5000);
+                int value = (int) clampLong(cfg.optInt("value", 1), 1, 6);
+                int c = palette[0];
+                if (t < rollMs) {
+                    double x = t / (double) rollMs;
+                    long step = (long) Math.floor(16 * (1 - (1 - x) * (1 - x)));
+                    long seed = cfg.optLong("seed", 0);
+                    for (int i = 0; i < n; i++) if (noise(step + seed * 31, i) > 0.55) out[i] = c;
+                } else {
+                    for (int k = 0; k < value; k++) out[(k * n) / value] = c;
+                }
+                break;
+            }
+
+            case "beat": {
+                // Tap tempo: one pulse per beat in the next colour, with an accent LED that steps
+                // round the ring each beat. The last 30% of every beat is dark.
+                long beatMs = clampLong(cfg.optLong("beatMs", 500), 250, 2000);
+                long tt = t + Math.max(0, cfg.optLong("timeOffsetMs", 0));
+                long beat = tt / beatMs;
+                double phase = (tt % beatMs) / (double) beatMs;
+                double env = phase < 0.08 ? phase / 0.08 : phase < 0.7 ? Math.exp(-(phase - 0.08) * 5) : 0;
+                int c = palette[(int) (beat % palette.length)];
+                int accent = (int) (beat % n);
+                for (int i = 0; i < n; i++) out[i] = scale(c, (i == accent ? 1.0 : 0.45) * env);
+                break;
+            }
+
+            case "demo": {
+                // The demo reel: each scene is an ordinary look played for "sceneMs", opened by a
+                // short dark gap and faded in and out. The gaps reset the brightness taper, so a
+                // long show stays at full brightness without weakening any safety limit.
+                JSONArray scenes = cfg.optJSONArray("scenes");
+                if (scenes == null) break;
+                long start = 0;
+                for (int s = 0; s < scenes.length(); s++) {
+                    JSONObject scene = scenes.optJSONObject(s);
+                    if (scene == null) continue;
+                    long ms = clampLong(scene.optLong("sceneMs", 4500), 1000, 10000);
+                    if (t < start + ms) {
+                        long ts = t - start;
+                        String inner = scene.optString("mode", scene.optString("pattern", "off"));
+                        if (ts < DEMO_GAP_MS || "demo".equals(inner) || "random".equals(inner)) break;
+                        double env = Math.min(1.0, Math.min((ts - DEMO_GAP_MS) / DEMO_FADE_MS, (ms - ts) / DEMO_FADE_MS));
+                        int[] f = frame(scene, ts - DEMO_GAP_MS, n);
+                        for (int i = 0; i < n; i++) out[i] = scale(f[i], env);
+                        break;
+                    }
+                    start += ms;
+                }
+                break;
+            }
+
             case "random": {
                 long interval = Math.max(120, cfg.optLong("randomIntervalMs", 1500));
                 boolean perLed = cfg.optBoolean("randomPerLed", true);
@@ -394,6 +480,10 @@ public final class Renderer {
         x *= 0x27BB2EE687B0B0FDL;
         x ^= x >>> 29;
         return (x >>> 11) / (double) (1L << 53);
+    }
+
+    private static long clampLong(long v, long min, long max) {
+        return Math.max(min, Math.min(max, v));
     }
 
     private static long phaseMs(JSONObject cfg, String key, long fallback, long min) {

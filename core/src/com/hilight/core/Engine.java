@@ -668,6 +668,10 @@ public final class Engine {
             case "twinkle":
             case "candle":
             case "breathing":
+            case "spin":
+            case "dice":
+            case "beat":
+            case "demo":
                 return true;
             case "custom":
                 return cfg.optLong("rotateMs", 0) > 50;
