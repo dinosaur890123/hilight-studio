@@ -1843,17 +1843,32 @@ class Store private constructor(private val app: Context) {
     }
 
     /**
-     * Starts (or re-syncs) tap-tempo pulses at [beatMs], with beat one landing now. Sent as
-     * overlapping segments, like the breathing guide, so it can outlast the one-minute alert cap.
+     * Starts or re-syncs music sync to [grid]. The first call is refused with the reason when a guard
+     * blocks a Test; later calls only re-sync a session that still owns the top layer, so a
+     * notification alert that took over is never stomped on: the session just ends. Sent as
+     * overlapping segments, like the breathing guide, so it can outlast the one-minute alert cap,
+     * and never past [PartyModes.BEAT_SESSION_MS] from the first beat.
      */
-    fun startBeat(beatMs: Int): Suppression? {
-        if (activeAlertOwner != BEAT_OWNER) previewSuppressionReason()?.let { return it }
+    fun syncBeat(grid: MusicSync.Grid): Suppression? {
+        val running = _beat.value
+        if (running == null) {
+            previewSuppressionReason()?.let { return it }
+        } else if (activeAlertOwner != BEAT_OWNER) {
+            stopBeat()
+            return null
+        }
+        val endsAt = running?.endsAtMs ?: (grid.startedAtMs + PartyModes.BEAT_SESSION_MS)
+        val remaining = (endsAt - grid.startedAtMs).toInt()
+        if (remaining <= 0) {
+            stopBeat()
+            return null
+        }
         beatNext?.let { main.removeCallbacks(it) }
         beatNext = null
         _party.value = null
-        val session = BeatSession(beatMs, SystemClock.elapsedRealtime())
+        val session = BeatSession(grid, endsAt)
         _beat.value = session
-        sendBeatSegment(session, BreathingGuide.segments(PartyModes.BEAT_SESSION_MS), 0)
+        sendBeatSegment(session, BreathingGuide.segments(remaining), 0)
         return null
     }
 
@@ -1872,11 +1887,12 @@ class Store private constructor(private val app: Context) {
             return
         }
         val (offset, duration, next) = segments.getOrNull(index) ?: return
+        val grid = session.grid
         holdAlert(
-            PartyModes.beatAlert(Bridge.nextAlertId(), session.beatMs, offset, duration),
+            PartyModes.beatAlert(Bridge.nextAlertId(), grid.beatMs, grid.offsetMs + offset, duration, grid.energy),
             duration,
             arm = index == 0,
-            preview = Ambient(pattern = Pattern.PULSE, color = PartyModes.BEAT_COLOURS.first(), speedMs = session.beatMs),
+            preview = Ambient(pattern = Pattern.PULSE, color = PartyModes.BEAT_COLOURS.first(), speedMs = grid.beatMs),
             source = AlertSource.PREVIEW,
             owner = BEAT_OWNER,
         )
@@ -1888,6 +1904,10 @@ class Store private constructor(private val app: Context) {
         beatNext = r
         main.postDelayed(r, (next ?: duration).toLong())
     }
+
+    /** Listens to the music for music sync; created on first use. */
+    private val musicLazy = lazy { MusicListener(app, this, main) }
+    val music: MusicListener get() = musicLazy.value
 
     // ------------------------------------------------------------------ test bench
 
@@ -1990,6 +2010,7 @@ class Store private constructor(private val app: Context) {
      * sight, so backgrounding must leave it alone.
      */
     fun stopPreview() {
+        if (musicLazy.isInitialized()) music.stop()
         beatNext?.let { main.removeCallbacks(it) }
         beatNext = null
         _beat.value = null

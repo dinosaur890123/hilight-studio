@@ -284,8 +284,9 @@ or shared without ever including message text.
 ## Privacy activity rules
 
 Microphone and camera rules are separate from notification and foreground rules. A rule can target
-one package or any app. The privileged renderer observes Android's active AppOps snapshot; it never
-opens the microphone or camera and never receives their content.
+one package or any app. The privileged renderer observes Android's active AppOps snapshot; it does
+not open the microphone or camera itself. HiLight Studio's own package is left out of the snapshot,
+so Music sync listening in the app does not set off a microphone rule.
 
 Callbacks are treated only as invalidation signals. After each callback the watcher reads a fresh,
 authoritative snapshot, so duplicate callbacks and process death cannot leave a reference count

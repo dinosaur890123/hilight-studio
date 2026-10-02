@@ -107,11 +107,16 @@ public final class PrivacyScheduler {
         this.rules = Collections.unmodifiableList(new ArrayList<>(rules));
     }
 
+    /** HiLight Studio itself; its own music-sync listening is not a privacy event to signal. */
+    static final String OWN_PACKAGE = "com.hilight.studio";
+
     /** Reconciles an authoritative current snapshot; callbacks must not be applied as reference counts. */
     public void updateActive(Set<Use> uses, long now) {
         EnumMap<Activity, Set<String>> next = new EnumMap<>(Activity.class);
         for (Activity activity : Activity.values()) next.put(activity, new HashSet<>());
-        for (Use use : uses) next.get(use.activity).add(use.packageName);
+        for (Use use : uses) {
+            if (!OWN_PACKAGE.equals(use.packageName)) next.get(use.activity).add(use.packageName);
+        }
 
         for (Activity activity : Activity.values()) {
             Map<String, Episode> current = packages.get(activity);

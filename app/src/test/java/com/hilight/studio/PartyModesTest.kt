@@ -42,13 +42,18 @@ class PartyModesTest {
 
     @Test
     fun `beat dances a new move each bar, changes colour each beat and rests dark`() {
-        for (beatMs in listOf(300, 500, 1_200)) for (offset in listOf(0L, 50_000L)) {
-            val json = PartyModes.beatAlert(1, beatMs, offset, 53_000)
+        for (beatMs in listOf(300, 500, 1_200)) for (offset in listOf(0L, 50_000L)) for (energy in listOf(1.0, 0.65, 0.3, 0.0)) {
+            val json = PartyModes.beatAlert(1, beatMs, offset, 53_000, energy)
             for (t in (0L..6_000L step 23L)) {
-                assertArrayEquals("beat=$beatMs offset=$offset t=$t",
-                    PartyModes.beatFrame(beatMs, offset + t), core.frame(json, t, LED_COUNT))
+                assertArrayEquals("beat=$beatMs offset=$offset energy=$energy t=$t",
+                    PartyModes.beatFrame(beatMs, offset + t, energy), core.frame(json, t, LED_COUNT))
             }
         }
+        // energy dims the dance, and zero is dark
+        assertEquals(0, lit(PartyModes.beatFrame(500, 40, 0.0)))
+        val loud = PartyModes.beatFrame(500, 40).sumOf { it and 0xFF00 shr 8 }
+        val quiet = PartyModes.beatFrame(500, 40, 0.5).sumOf { it and 0xFF00 shr 8 }
+        assertTrue(quiet in 1 until loud)
         // the last fifth of every beat is dark, which keeps resetting the brightness taper
         for (b in 0L until 32L) assertEquals(0, lit(PartyModes.beatFrame(500, b * 500 + 420)))
         // each bar of four beats dances a different move
@@ -110,20 +115,5 @@ class PartyModesTest {
         assertNull(PartyModes.demoSceneAt(total))
         assertEquals(0, lit(PartyModes.demoFrame(total + 10)))
         assertTrue("fits in one alert", total <= 60_000)
-    }
-
-    @Test
-    fun `tap tempo takes the median of recent taps and starts fresh after a pause`() {
-        val tempo = TapTempo()
-        assertNull(tempo.tap(0))
-        assertNull(tempo.tap(500))
-        assertEquals(500, tempo.tap(1_000))
-        assertEquals(500, tempo.tap(1_620))   // one sloppy tap barely moves it
-        assertEquals(500, tempo.tap(2_100))
-        assertNull("a long pause starts over", tempo.tap(10_000))
-        assertEquals(120, TapTempo.bpm(500))
-        assertEquals(TapTempo.MIN_BEAT_MS, TapTempo().run { tap(0); tap(100); tap(200) })
-        assertEquals(TapTempo.MAX_BEAT_MS, TapTempo.scaled(1_000, 2.0))
-        assertEquals(500, TapTempo.scaled(1_000, 0.5))
     }
 }

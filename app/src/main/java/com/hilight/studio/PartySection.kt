@@ -1,21 +1,20 @@
 package com.hilight.studio
 
+import android.Manifest
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.SystemClock
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,30 +22,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
-/** Demo reel, party pack and tap tempo, for the Extras tab. */
+/** Demo reel, party pack and music sync, for the Extras tab. */
 @Composable
 fun PartySection(store: Store, available: Boolean) {
     DemoReelCard(store, available)
     PartyPackCard(store, available)
-    TapTempoCard(store, available)
+    MusicSyncCard(store, available)
 }
 
 /** Elapsed time since [startedAtMs], ticking at the LEDs' frame rate while [running]. */
@@ -209,73 +208,138 @@ private fun PartyPackCard(store: Store, available: Boolean) {
 }
 
 @Composable
-private fun TapTempoCard(store: Store, available: Boolean) {
+private fun MusicSyncCard(store: Store, available: Boolean) {
+    val ctx = LocalContext.current
+    val res = LocalResources.current
+    val view = LocalView.current
     val blocked = rememberBlockedToast()
-    val haptics = LocalHapticFeedback.current
+    val music = store.music
+    val ui by music.ui.collectAsStateWithLifecycle()
     val session by store.beat.collectAsStateWithLifecycle()
-    val tempo = remember { TapTempo() }
-    var taps by remember { mutableIntStateOf(0) }
+    var source by rememberSaveable { mutableStateOf(MusicListener.Source.PHONE) }
     val current = session
-    val elapsed = rememberElapsed(current?.startedAtMs, current != null)
+    var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
+
+    val listen = {
+        when (val result = music.start(source)) {
+            MusicListener.Start.Ok, MusicListener.Start.NeedsPermission -> Unit
+            is MusicListener.Start.Blocked -> blocked(result.reason)
+        }
+    }
+    val askPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) listen()
+        else Toast.makeText(ctx, res.getString(R.string.music_need_permission), Toast.LENGTH_LONG).show()
+    }
+
+    if (ui.listening) {
+        DisposableEffect(Unit) {
+            view.keepScreenOn = true
+            onDispose { view.keepScreenOn = false }
+        }
+        LaunchedEffect(Unit) {
+            while (true) {
+                now = SystemClock.elapsedRealtime()
+                delay(33)
+            }
+        }
+    }
 
     PixelCard {
-        SectionTitle(stringResource(R.string.tempo_title))
-        Caption(stringResource(R.string.tempo_body))
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .clip(RoundedCornerShape(24.dp))
-                .background(
-                    if (available) MaterialTheme.colorScheme.primaryContainer
-                    else MaterialTheme.colorScheme.surfaceContainerHighest,
-                )
-                .clickable(enabled = available) {
-                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                    taps++
-                    tempo.tap(SystemClock.elapsedRealtime())?.let { beatMs -> blocked(store.startBeat(beatMs)) }
+        SectionTitle(stringResource(R.string.music_title))
+        Caption(stringResource(R.string.music_body))
+        if (ui.listening) {
+            val grid = current?.grid
+            val clock = grid?.clockAt(now) ?: 0L
+            LedFrameStrip(
+                opaque(if (grid != null) PartyModes.beatFrame(grid.beatMs, clock, grid.energy) else IntArray(LED_COUNT)),
+                stringResource(R.string.music_title),
+                heightDp = 40,
+            )
+            LinearProgressIndicator(
+                progress = { ui.intensity.toFloat() },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                when (ui.status) {
+                    MusicListener.Status.DANCING -> ui.bpm?.let { stringResource(R.string.music_bpm, it) }
+                        ?: stringResource(R.string.music_status_finding)
+                    MusicListener.Status.FINDING_BEAT -> stringResource(R.string.music_status_finding)
+                    else -> stringResource(R.string.music_status_waiting)
                 },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                if (current != null) stringResource(R.string.tempo_bpm, TapTempo.bpm(current.beatMs))
-                else stringResource(R.string.tempo_tap_here),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                style = MaterialTheme.typography.headlineSmall,
             )
-        }
-        if (current != null) {
-            LedFrameStrip(opaque(PartyModes.beatFrame(current.beatMs, elapsed)), stringResource(R.string.tempo_title), heightDp = 34)
-            val beat = elapsed / current.beatMs
-            Text(
-                stringResource(
-                    R.string.tempo_now,
+            if (grid != null && ui.status == MusicListener.Status.DANCING) {
+                val beat = clock / grid.beatMs
+                Caption(
                     stringResource(
-                        when (PartyModes.beatMove(beat)) {
-                            0 -> R.string.tempo_move_pulse
-                            1 -> R.string.tempo_move_chase
-                            2 -> R.string.tempo_move_sweep
-                            else -> R.string.tempo_move_split
-                        }
-                    ),
-                    (beat % 4 + 1).toInt(),
-                ),
-                style = MaterialTheme.typography.titleMedium,
-            )
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
-                TextButton(onClick = { blocked(store.startBeat(TapTempo.scaled(current.beatMs, 2.0))) }) {
-                    ButtonLabel(stringResource(R.string.tempo_half))
-                }
-                TextButton(onClick = { blocked(store.startBeat(TapTempo.scaled(current.beatMs, 0.5))) }) {
-                    ButtonLabel(stringResource(R.string.tempo_double))
-                }
-                FilledTonalButton(onClick = {
-                    tempo.reset()
-                    store.stopBeat()
-                }) { ButtonLabel(stringResource(R.string.extras_stop)) }
+                        R.string.music_now,
+                        stringResource(
+                            when (PartyModes.beatMove(beat)) {
+                                0 -> R.string.music_move_pulse
+                                1 -> R.string.music_move_chase
+                                2 -> R.string.music_move_sweep
+                                else -> R.string.music_move_split
+                            }
+                        ),
+                        (beat % 4 + 1).toInt(),
+                    )
+                )
             }
-        } else if (taps > 0) {
-            Caption(stringResource(R.string.tempo_keep_tapping))
+            if (ui.fellBack) Caption(stringResource(R.string.music_fell_back))
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(onClick = { music.nudge(-MusicListener.NUDGE_STEP_MS) }) {
+                    ButtonLabel(stringResource(R.string.music_earlier))
+                }
+                Text(
+                    stringResource(R.string.music_timing, "%+d".format(ui.nudgeMs)),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                TextButton(onClick = { music.nudge(MusicListener.NUDGE_STEP_MS) }) {
+                    ButtonLabel(stringResource(R.string.music_later))
+                }
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                FilledTonalButton(onClick = { music.stop() }) { ButtonLabel(stringResource(R.string.extras_stop)) }
+            }
+        } else {
+            SegmentedSelector(
+                options = MusicListener.Source.entries,
+                selected = source,
+                label = {
+                    stringResource(
+                        if (it == MusicListener.Source.PHONE) R.string.music_source_phone else R.string.music_source_mic
+                    )
+                },
+                onSelect = { source = it },
+            )
+            Caption(
+                stringResource(
+                    if (source == MusicListener.Source.PHONE) R.string.music_source_phone_hint
+                    else R.string.music_source_mic_hint
+                )
+            )
+            when (ui.status) {
+                MusicListener.Status.FINISHED -> Caption(stringResource(R.string.music_status_finished))
+                MusicListener.Status.FAILED -> Text(
+                    stringResource(R.string.music_status_failed),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                else -> Unit
+            }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Button(
+                    onClick = {
+                        if (music.hasPermission()) listen()
+                        else askPermission.launch(Manifest.permission.RECORD_AUDIO)
+                    },
+                    enabled = available,
+                ) { ButtonLabel(stringResource(R.string.music_listen)) }
+            }
         }
     }
 }

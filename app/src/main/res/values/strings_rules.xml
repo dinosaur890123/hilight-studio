@@ -177,7 +177,7 @@
     <string name="privacy_microphone_hint">Signals while an app is recording audio.</string>
     <string name="privacy_camera_hint">Signals while an app is using the camera.</string>
     <string name="privacy_card_summary">%1$s light · %2$s rest</string>
-    <string name="privacy_observation_note">HiLight observes Android’s active privacy signal in the privileged renderer. It does not read recordings.</string>
+    <string name="privacy_observation_note">HiLight watches Android’s microphone and camera in-use signal from the privileged renderer. HiLight’s own Music sync listening does not count.</string>
     <string name="privacy_light_time">Light time</string>
     <string name="privacy_allow_long_light">Allow more than 30 seconds</string>
     <string name="privacy_long_warn_first_title">Light longer than 30 seconds?</string>

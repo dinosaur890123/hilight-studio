@@ -12,6 +12,10 @@
     <!-- Used only after the user taps Check for updates; there is no background network check. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Music sync: listens to the phone's own audio (or the microphone) to find the beat. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- Needed by Android to read the phone's output mix for music sync. -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <!-- One optional recovery notice after reboot, only for an opted-in Shizuku user. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission

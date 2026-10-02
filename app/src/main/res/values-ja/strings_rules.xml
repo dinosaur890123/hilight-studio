@@ -282,7 +282,7 @@
     <string name="privacy_microphone_hint">アプリが音声を録音している間に通知します。</string>
     <string name="privacy_camera_hint">アプリがカメラを使用している間に通知します。</string>
     <string name="privacy_card_summary">%1$s点灯 · %2$s休止</string>
-    <string name="privacy_observation_note">HiLight は権限付きレンダラーで Android の使用中シグナルを監視します。録音や映像の内容は読み取りません。</string>
+    <string name="privacy_observation_note">HiLight は権限付きレンダラーで Android のマイク・カメラ使用中シグナルを監視します。HiLight 自身のミュージックシンクは対象外です。</string>
     <string name="privacy_light_time">点灯時間</string>
     <string name="privacy_allow_long_light">30 秒を超える点灯を許可</string>
     <string name="privacy_long_warn_first_title">30 秒より長く点灯しますか</string>

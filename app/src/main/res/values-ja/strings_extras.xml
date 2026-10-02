@@ -56,31 +56,51 @@
     <!-- "Rolled a %1$d" -->
     <string name="party_rolled">出た目は %1$d</string>
 
-    <!-- "Tap tempo" -->
-    <string name="tempo_title">タップテンポ</string>
-    <!-- "Tap along to the music and the ring pulses on the beat, …" -->
-    <string name="tempo_body">音楽に合わせてタップすると、リングが拍に合わせて踊ります。拍ごとに色が変わり、小節の頭で白く光り、4 拍ごとに動きが変わります。タップを続けるとずれを補正します。マイクは使いません。</string>
-    <!-- "Tap to the beat" -->
-    <string name="tempo_tap_here">リズムに合わせてタップ</string>
-    <!-- "Keep tapping: it starts on the third tap." -->
-    <string name="tempo_keep_tapping">そのまま続けてください。3 回目のタップで始まります。</string>
+    <!-- "Music sync" -->
+    <string name="music_title">ミュージックシンク</string>
+    <!-- "Play a song and press Listen. …" -->
+    <string name="music_body">曲を再生して「聴く」を押すと、リングが拍を見つけて一緒に踊ります。拍ごとに色が変わり、小節の頭で白く光り、4 拍ごとに動きが変わり、音が大きいほど明るくなります。1 回最大 5 分です。</string>
+    <!-- "Listen" -->
+    <string name="music_listen">聴く</string>
+    <!-- "Phone audio" -->
+    <string name="music_source_phone">本体の音声</string>
+    <!-- "Microphone" -->
+    <string name="music_source_mic">マイク</string>
+    <!-- "Hears whatever this phone is playing, at any volume. …" -->
+    <string name="music_source_phone_hint">このスマートフォンで再生中の音を音量に関係なく聴き取ります。Android が共有しない場合はマイクに切り替えます。</string>
+    <!-- "Hears music from any speaker in the room." -->
+    <string name="music_source_mic_hint">部屋のスピーカーから流れる音楽を聴き取ります。</string>
+    <!-- "Phone audio couldn't be read, so the microphone is listening instead." -->
+    <string name="music_fell_back">本体の音声を読み取れなかったため、代わりにマイクで聴いています。</string>
+    <!-- "Music sync needs the microphone permission to hear the music." -->
+    <string name="music_need_permission">ミュージックシンクで音楽を聴き取るにはマイクの権限が必要です。</string>
+    <!-- "Listening… play some music." -->
+    <string name="music_status_waiting">聴いています… 音楽を再生してください。</string>
+    <!-- "Finding the beat…" -->
+    <string name="music_status_finding">拍を探しています…</string>
+    <!-- "Music sync stopped. Press Listen to go again." -->
+    <string name="music_status_finished">ミュージックシンクを停止しました。もう一度「聴く」を押してください。</string>
+    <!-- "Couldn't start listening. …" -->
+    <string name="music_status_failed">聴き取りを開始できませんでした。設定で HiLight Studio のマイク権限を確認してください。</string>
     <!-- "%1$d BPM" -->
-    <string name="tempo_bpm">%1$d BPM</string>
-    <!-- "Half speed" -->
-    <string name="tempo_half">半分の速さ</string>
-    <!-- "Double speed" -->
-    <string name="tempo_double">2 倍の速さ</string>
+    <string name="music_bpm">%1$d BPM</string>
+    <!-- "Light earlier" -->
+    <string name="music_earlier">ライトを早く</string>
+    <!-- "Light later" -->
+    <string name="music_later">ライトを遅く</string>
+    <!-- "Timing %1$s ms" -->
+    <string name="music_timing">タイミング %1$s ms</string>
 
     <!-- "Pulse" -->
-    <string name="tempo_move_pulse">パルス</string>
+    <string name="music_move_pulse">パルス</string>
     <!-- "Chase" -->
-    <string name="tempo_move_chase">チェイス</string>
+    <string name="music_move_chase">チェイス</string>
     <!-- "Sweep" -->
-    <string name="tempo_move_sweep">スイープ</string>
+    <string name="music_move_sweep">スイープ</string>
     <!-- "Split" -->
-    <string name="tempo_move_split">スプリット</string>
+    <string name="music_move_split">スプリット</string>
     <!-- "%1$s · beat %2$d of 4" -->
-    <string name="tempo_now">%1$s · %2$d / 4 拍目</string>
+    <string name="music_now">%1$s · %2$d / 4 拍目</string>
 
     <!-- "Compass" -->
     <string name="compass_title">コンパス</string>

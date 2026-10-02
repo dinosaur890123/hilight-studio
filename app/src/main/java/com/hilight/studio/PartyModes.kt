@@ -11,7 +11,7 @@ import kotlin.math.max
 import kotlin.math.min
 
 /**
- * The party pack (spin the wheel, dice), tap tempo and the demo reel.
+ * The party pack (spin the wheel, dice), music sync and the demo reel.
  *
  * Each is a renderer mode, so it animates smoothly at the LEDs' own frame rate. This object builds
  * their alert documents and mirrors their maths bit for bit for the on-screen strips; the parity is
@@ -25,7 +25,7 @@ object PartyModes {
         0xFF00E5FF, 0xFF2979FF, 0xFF7C4DFF, 0xFFFF4081,
     ).map { it.toInt() }
 
-    /** Colours the tap-tempo pulses step through, one per beat. */
+    /** Colours music sync steps through, one per beat. */
     val BEAT_COLOURS: List<Int> = listOf(
         0xFFFF1744, 0xFFFFD600, 0xFF00E676, 0xFF00E5FF, 0xFF7C4DFF, 0xFFFF4081,
     ).map { it.toInt() }
@@ -37,7 +37,7 @@ object PartyModes {
     const val DICE_ROLL_MS = 1_400
     const val DICE_HOLD_MS = 4_000
 
-    /** Longest tap-tempo session; well inside the renderer's half-of-ten-minutes duty limit. */
+    /** Longest music sync session; well inside the renderer's half-of-ten-minutes duty limit. */
     const val BEAT_SESSION_MS = 300_000
 
     // ------------------------------------------------------------------ spin
@@ -107,11 +107,12 @@ object PartyModes {
 
     // ------------------------------------------------------------------ beat
 
-    fun beatAlert(id: Long, beatMs: Int, offsetMs: Long, durationMs: Int): JSONObject = JSONObject().apply {
+    fun beatAlert(id: Long, beatMs: Int, offsetMs: Long, durationMs: Int, energy: Double = 1.0): JSONObject = JSONObject().apply {
         put("id", id)
         put("pattern", "beat")
         put("beatMs", beatMs)
         put("timeOffsetMs", offsetMs)
+        put("energy", energy)
         put("colors", JSONArray().also { a -> BEAT_COLOURS.forEach { a.put(it.toUInt().toLong()) } })
         put("brightness", 1.0)
         put("durationMs", durationMs)
@@ -121,7 +122,13 @@ object PartyModes {
     /** The move a bar of four beats dances: 0 pulse, 1 chase, 2 sweep, 3 split. */
     fun beatMove(beat: Long): Int = ((beat / 4) % 4).toInt()
 
-    fun beatFrame(beatMs: Int, elapsedMs: Long, n: Int = LED_COUNT, palette: List<Int> = BEAT_COLOURS): IntArray {
+    fun beatFrame(
+        beatMs: Int,
+        elapsedMs: Long,
+        energy: Double = 1.0,
+        n: Int = LED_COUNT,
+        palette: List<Int> = BEAT_COLOURS,
+    ): IntArray {
         val out = IntArray(n)
         val ms = beatMs.toLong().coerceIn(250, 2000)
         val beat = elapsedMs / ms
@@ -170,6 +177,8 @@ object PartyModes {
                 }
             }
         }
+        val level = energy.coerceIn(0.0, 1.0)
+        if (level < 1) for (i in 0 until n) if (out[i] != 0) out[i] = Renderer.scale(out[i], level)
         return out
     }
 
@@ -250,44 +259,5 @@ data class PartySession(
     }
 }
 
-/** A running tap-tempo session; [startedAtMs] (elapsed realtime) is beat one. */
-data class BeatSession(val beatMs: Int, val startedAtMs: Long)
-
-/**
- * Turns taps into a tempo: the median gap between the last few taps, so one sloppy tap does not throw
- * it off. A pause of more than two seconds starts a fresh count.
- */
-class TapTempo {
-    private val taps = ArrayDeque<Long>()
-
-    /** Records a tap; returns the beat length in ms once there are at least three taps, else null. */
-    fun tap(nowMs: Long): Int? {
-        if (taps.isNotEmpty() && nowMs - taps.last() > RESET_MS) taps.clear()
-        taps.addLast(nowMs)
-        while (taps.size > MAX_TAPS) taps.removeFirst()
-        return beatMs()
-    }
-
-    fun beatMs(): Int? {
-        if (taps.size < 3) return null
-        val gaps = taps.zipWithNext { a, b -> b - a }.sorted()
-        val median = if (gaps.size % 2 == 1) gaps[gaps.size / 2].toDouble()
-        else (gaps[gaps.size / 2 - 1] + gaps[gaps.size / 2]) / 2.0
-        return median.toInt().coerceIn(MIN_BEAT_MS, MAX_BEAT_MS)
-    }
-
-    fun reset() = taps.clear()
-
-    companion object {
-        const val RESET_MS = 2_000L
-        const val MAX_TAPS = 8
-        /** 200 BPM at the fast end, 40 BPM at the slow end. */
-        const val MIN_BEAT_MS = 300
-        const val MAX_BEAT_MS = 1_500
-
-        fun bpm(beatMs: Int): Int = Math.round(60_000f / beatMs)
-
-        /** Halving or doubling the tempo, kept inside the supported range. */
-        fun scaled(beatMs: Int, factor: Double): Int = (beatMs * factor).toInt().coerceIn(MIN_BEAT_MS, MAX_BEAT_MS)
-    }
-}
+/** A running music sync session: the beat clock the light is playing, until [endsAtMs]. */
+data class BeatSession(val grid: MusicSync.Grid, val endsAtMs: Long)

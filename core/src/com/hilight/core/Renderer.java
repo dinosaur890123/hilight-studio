@@ -414,9 +414,10 @@ public final class Renderer {
             }
 
             case "beat": {
-                // Tap tempo choreography. Each bar of four beats has its own move (pulse, chase,
+                // Music sync choreography. Each bar of four beats has its own move (pulse, chase,
                 // sweep, split), the colour changes every beat, the first beat of a bar flashes
-                // towards white, and the last fifth of every beat is dark.
+                // towards white, and the last fifth of every beat is dark. "energy" (0..1) is how
+                // loud the music is right now and scales the whole frame.
                 long beatMs = clampLong(cfg.optLong("beatMs", 500), 250, 2000);
                 long tt = t + Math.max(0, cfg.optLong("timeOffsetMs", 0));
                 long beat = tt / beatMs;
@@ -465,6 +466,10 @@ public final class Renderer {
                         }
                         break;
                     }
+                }
+                double energy = clamp01(cfg.optDouble("energy", 1));
+                if (energy < 1) {
+                    for (int i = 0; i < n; i++) if (out[i] != 0) out[i] = scale(out[i], energy);
                 }
                 break;
             }

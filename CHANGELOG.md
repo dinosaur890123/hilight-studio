@@ -47,10 +47,8 @@ All notable changes to HiLight Studio are documented here.
   the show stays at full brightness without any change to the safety limits.
 - Added a **party pack**: spin the wheel (a light races round the ring and stops on one LED) and a
   die whose pips light up around the ring, with optional shake-to-roll while the card is open.
-- Added **tap tempo**: tap along to music and the ring dances on the beat for up to five minutes. Each
-  bar of four beats has its own move (pulse, chase, sweep, split), the colour changes every beat and
-  the first beat of each bar flashes towards white. No microphone is used. Spin, dice, beat, demo and
-  the three new effects are renderer modes; renderer implementation revision is now 13.
+- Spin, dice, the demo reel and the three new effects are renderer modes; renderer implementation
+  revision 13 added them.
 - The on-screen Rainbow now uses the renderer's exact colour maths.
 - Added an **LED test bench** on the Extras tab. A 75-second power test measures each colour's draw
   from the battery's own current and voltage against dark steps either side. A heat run logs battery
@@ -64,6 +62,15 @@ All notable changes to HiLight Studio are documented here.
   rest for at most 11 minutes of light,
   refilled only after 15 minutes without experiment frames. Everything else is limited exactly as
   before. Renderer implementation revision is now 14.
+- Added **Music sync** on the Extras tab. Press **Listen** and the ring finds the beat of whatever is
+  playing and dances to it for up to five minutes: a new colour every beat, a white flash on each bar,
+  a new move (pulse, chase, sweep, split) every four beats, brighter when the music is louder and
+  dark when it stops. It listens to the phone's own audio, falling back to the microphone (which also
+  hears a speaker in the room), and follows tempo changes. **Light earlier / later** adjusts the
+  timing for Bluetooth speakers. It needs the microphone permission; HiLight's own listening does not
+  trigger microphone privacy activity rules. Music sync replaces tap tempo. The beat mode gained an
+  energy level; renderer implementation revision is now 15.
+- The README's privacy section is now a plain **Data and permissions** list.
 - Existing duration, brightness, rest and cleanup limits apply to every new effect unchanged.
 
 ## 1.0.15-rc.1 — 2026-09-20

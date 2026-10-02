@@ -31,10 +31,11 @@ Control the eight-LED HiLight array on Pixel 11 Pro devices.
 - Featured looks, a Surprise me button, and saved presets you can rename, reorder, share, import and export
 - Wallpaper-derived colours and a Quick Settings tile
 - A screen-down compass, a breathing guide, shake for sparkles and time-of-day colours
+- Music sync: press Listen and the ring finds the beat of whatever is playing and dances to it
 - Quiet hours, Do Not Disturb, Battery Saver, and low-battery controls
 - English and Japanese, selectable per app from Android's own language settings
 - Automatic root access when available, with Shizuku and ADB as fallbacks
-- Privacy-safe renderer diagnostics and a manual black-only LED cleanup retry
+- Renderer diagnostics and a manual black-only LED cleanup retry
 - Manual update checks against the project's GitHub releases
 
 ## Screenshots
@@ -173,20 +174,24 @@ Long, continuous use of the HiLight LEDs has not been tested. If you build the p
 
 See [Technical details](docs/TECHNICAL.md) for the renderer architecture, hardware findings, device verification, and known limits.
 
-## Privacy
+## Data and permissions
 
-HiLight Studio has no analytics, account system, or telemetry. It uses the internet only when you
-tap **Check for updates** under Setup, which fetches public release information from GitHub. No app
-rules, notification data, or settings are sent. App rules and presets stay on the device.
-Notification and usage access are optional and are used locally for the rules you enable. Privacy
-activity rules observe only whether Android reports the microphone or camera as active; HiLight never
-reads or records audio, video, or their contents.
+- **Internet** is used when you tap **Check for updates** under Setup, to fetch release information
+  from GitHub.
+- **Microphone** (Android's record-audio permission) is used by **Music sync** while it is listening.
+  It reads the phone's own audio output, or the microphone when that is unavailable, and analyses it
+  as it arrives to find the beat and the loudness. Listening stops when you press Stop, when the app
+  leaves the screen, or after five minutes. HiLight's own listening does not trigger microphone
+  privacy activity rules.
+- **Notification access** and **Usage access** are optional and drive the notification and
+  foreground-app rules you set up. Per-contact rules read the sender's name from the notification
+  itself; picking a contact by hand uses the system picker. Chat names HiLight has seen are kept on
+  the device for the picker and can be cleared with **Forget remembered chats** under Setup.
+- Privacy activity rules use Android's report of whether the microphone or camera is active.
+- App rules, presets and settings are stored on the device.
 
-**Copy LED diagnostics** is local and allowlisted. It includes app/device build labels, renderer
-identity, transport, session lifecycle, cleanup outcome, and state revisions; it excludes notification
-content, package names, accounts, device serial, Android ID, and logcat.
-
-Per-contact rules read the sender's name from the notification itself, so they need no contacts permission — picking a contact by hand uses the system picker, which hands over only the row you tap. HiLight remembers the names of chats it has seen so the picker needs no typing; that list is stored on the device, is capped, and can be cleared at any time with **Forget remembered chats** under Setup. Message text is never stored, never logged, and never included in anything the notification inspector copies or shares.
+**Copy LED diagnostics** copies an allowlisted report: app/device build labels, renderer identity,
+transport, session lifecycle, cleanup outcome, and state revisions.
 
 ## Build from source
 

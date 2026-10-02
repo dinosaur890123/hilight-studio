@@ -16,6 +16,17 @@ public final class PrivacySchedulerTest {
             new PrivacyScheduler.Rule("camera-any", PrivacyScheduler.Activity.CAMERA, "*", 10_000, 10_000);
 
     @Test
+    public void hiLightsOwnMusicSyncListeningIsIgnored() {
+        PrivacyScheduler s = scheduler(MIC_ANY);
+        s.updateActive(set(use(PrivacyScheduler.Activity.MICROPHONE, 10050, PrivacyScheduler.OWN_PACKAGE)), 1_000);
+        assertPhase(s, 1_000, PrivacyScheduler.Phase.INACTIVE);
+        s.updateActive(set(
+                use(PrivacyScheduler.Activity.MICROPHONE, 10050, PrivacyScheduler.OWN_PACKAGE),
+                use(PrivacyScheduler.Activity.MICROPHONE, 10001, "recorder")), 2_000);
+        assertPhase(s, 2_000, PrivacyScheduler.Phase.LIT);
+    }
+
+    @Test
     public void defaultRhythmStopsAtOneMinute() {
         PrivacyScheduler s = scheduler(MIC_ANY);
         s.updateActive(set(use(PrivacyScheduler.Activity.MICROPHONE, 10001, "recorder")), 1_000);

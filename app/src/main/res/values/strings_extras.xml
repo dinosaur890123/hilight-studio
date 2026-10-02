@@ -42,23 +42,34 @@
     <!-- %1$d is the number rolled, 1 to 6 -->
     <string name="party_rolled">Rolled a %1$d</string>
 
-    <!-- Tap tempo -->
-    <string name="tempo_title">Tap tempo</string>
-    <string name="tempo_body">Tap along to the music and the ring dances on the beat: a new colour every beat, a white flash on each bar, and a new move every four beats. Keep tapping to stay in sync. No microphone is used.</string>
-    <string name="tempo_tap_here">Tap to the beat</string>
-    <string name="tempo_keep_tapping">Keep tapping: it starts on the third tap.</string>
+    <!-- Music sync -->
+    <string name="music_title">Music sync</string>
+    <string name="music_body">Play a song and press Listen. The ring finds the beat and dances along: a new colour every beat, a white flash on each bar, a new move every four beats, and brighter when the music gets louder. Up to five minutes at a time.</string>
+    <string name="music_listen">Listen</string>
+    <string name="music_source_phone">Phone audio</string>
+    <string name="music_source_mic">Microphone</string>
+    <string name="music_source_phone_hint">Hears whatever this phone is playing, at any volume. If Android won\'t share it, the microphone takes over.</string>
+    <string name="music_source_mic_hint">Hears music from any speaker in the room.</string>
+    <string name="music_fell_back">Phone audio couldn\'t be read, so the microphone is listening instead.</string>
+    <string name="music_need_permission">Music sync needs the microphone permission to hear the music.</string>
+    <string name="music_status_waiting">Listening… play some music.</string>
+    <string name="music_status_finding">Finding the beat…</string>
+    <string name="music_status_finished">Music sync stopped. Press Listen to go again.</string>
+    <string name="music_status_failed">Couldn\'t start listening. Check the microphone permission for HiLight Studio in Settings.</string>
     <!-- %1$d is beats per minute -->
-    <string name="tempo_bpm">%1$d BPM</string>
-    <string name="tempo_half">Half speed</string>
-    <string name="tempo_double">Double speed</string>
+    <string name="music_bpm">%1$d BPM</string>
+    <string name="music_earlier">Light earlier</string>
+    <string name="music_later">Light later</string>
+    <!-- %1$s is a signed number of milliseconds, such as +25 or -50 -->
+    <string name="music_timing">Timing %1$s ms</string>
 
-    <!-- The four tap-tempo moves; one plays per bar of four beats. -->
-    <string name="tempo_move_pulse">Pulse</string>
-    <string name="tempo_move_chase">Chase</string>
-    <string name="tempo_move_sweep">Sweep</string>
-    <string name="tempo_move_split">Split</string>
+    <!-- The four music sync moves; one plays per bar of four beats. -->
+    <string name="music_move_pulse">Pulse</string>
+    <string name="music_move_chase">Chase</string>
+    <string name="music_move_sweep">Sweep</string>
+    <string name="music_move_split">Split</string>
     <!-- %1$s is the move, %2$d the beat within the bar (1 to 4) -->
-    <string name="tempo_now">%1$s · beat %2$d of 4</string>
+    <string name="music_now">%1$s · beat %2$d of 4</string>
 
     <!-- Compass -->
     <string name="compass_title">Compass</string>
