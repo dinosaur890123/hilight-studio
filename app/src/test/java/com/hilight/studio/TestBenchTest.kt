@@ -62,20 +62,21 @@ class TestBenchTest {
             val on = i >= 2
             TestBench.Sample(i * 10_000L, 30.0 + i * 0.05, if (on) -420_000 else -300_000, 4_000, if (i > 60) 1 else 0, 0.4f, on)
         }
-        val run = TestBench.HeatRun(TestBench.HeatRunType.NO_DIMMING, 1_700_000_000_000, samples, TestBench.StopReason.COMPLETED, 41.5, "on the desk")
+        val run = TestBench.HeatRun(TestBench.HeatRunType.NO_DIMMING, 1_700_000_000_000, samples, TestBench.StopReason.COMPLETED, 41.5, "on the desk", surfaceStartC = 29.0)
         val back = TestBench.HeatRun.fromJson(run.toJson())!!
         assertEquals(run, back)
         assertEquals(30.0, back.startC!!, 1e-9)
         assertEquals(33.5, back.maxC!!, 1e-9)
         assertEquals(480.0, back.ledMilliWatts()!!, 0.5)
         assertEquals(680_000L, back.litMs)
+        assertEquals(12.5, back.surfaceRiseC!!, 1e-9)
 
         val previous = Locale.getDefault()
         Locale.setDefault(Locale.US)
         try {
             val csv = TestBench.csv(listOf(TestBench.PowerResult(TestBench.PowerStep.RED, 40_000.0, 160.0)), listOf(run))
             assertTrue(csv.contains("power,RED,40000,160.0"))
-            assertTrue(csv.contains("run,1,NO_DIMMING,1700000000000,COMPLETED,30.0,33.5,33.5,41.5,680,480,\"on the desk\""))
+            assertTrue(csv.contains("run,1,NO_DIMMING,1700000000000,COMPLETED,30.0,33.5,33.5,29.0,41.5,12.5,680,480,\"on the desk\""))
             assertEquals(71, csv.lines().count { it.startsWith("sample,1,") })
         } finally {
             Locale.setDefault(previous)

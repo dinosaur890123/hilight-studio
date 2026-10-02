@@ -134,7 +134,11 @@ object TestBench {
         val stop: StopReason,
         val surfaceC: Double? = null,
         val note: String = "",
+        /** The camera bar before the run, when the user took it, so the rise can be shown. */
+        val surfaceStartC: Double? = null,
     ) {
+        val surfaceRiseC: Double? get() = if (surfaceC != null && surfaceStartC != null) surfaceC - surfaceStartC else null
+
         val startC: Double? get() = samples.firstOrNull()?.batteryC
         val endC: Double? get() = samples.lastOrNull()?.batteryC
         val maxC: Double? get() = samples.maxOfOrNull { it.batteryC }
@@ -155,6 +159,7 @@ object TestBench {
             put("startedAt", startedAtEpochMs)
             put("stop", stop.name)
             surfaceC?.let { put("surfaceC", it) }
+            surfaceStartC?.let { put("surfaceStartC", it) }
             put("note", note)
             put("samples", JSONArray().also { a ->
                 samples.forEach { s ->
@@ -179,6 +184,7 @@ object TestBench {
                     startedAtEpochMs = o.getLong("startedAt"),
                     stop = StopReason.valueOf(o.getString("stop")),
                     surfaceC = if (o.has("surfaceC")) o.getDouble("surfaceC") else null,
+                    surfaceStartC = if (o.has("surfaceStartC")) o.getDouble("surfaceStartC") else null,
                     note = o.optString("note", ""),
                     samples = (0 until a.length()).map { i ->
                         val s = a.getJSONObject(i)
@@ -202,7 +208,7 @@ object TestBench {
         appendLine("section,step,delta_uA,mW")
         power.forEach { appendLine("power,${it.step.name},${"%.0f".format(it.deltaMicroAmps)},${"%.1f".format(it.milliWatts)}") }
         appendLine()
-        appendLine("section,run,type,started_epoch_ms,stop,start_C,end_C,max_C,surface_C,lit_s,led_mW,note")
+        appendLine("section,run,type,started_epoch_ms,stop,start_C,end_C,max_C,surface_start_C,surface_C,surface_rise_C,lit_s,led_mW,note")
         runs.forEachIndexed { i, r ->
             appendLine(
                 listOf(
@@ -210,7 +216,9 @@ object TestBench {
                     r.startC?.let { "%.1f".format(it) } ?: "",
                     r.endC?.let { "%.1f".format(it) } ?: "",
                     r.maxC?.let { "%.1f".format(it) } ?: "",
+                    r.surfaceStartC?.let { "%.1f".format(it) } ?: "",
                     r.surfaceC?.let { "%.1f".format(it) } ?: "",
+                    r.surfaceRiseC?.let { "%.1f".format(it) } ?: "",
                     r.litMs / 1000,
                     r.ledMilliWatts()?.let { "%.0f".format(it) } ?: "",
                     "\"" + r.note.replace("\"", "'") + "\"",

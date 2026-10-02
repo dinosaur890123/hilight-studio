@@ -4,7 +4,7 @@
     <!-- "LED test bench" -->
     <string name="bench_title">LED テストベンチ</string>
     <!-- "Measures how much power the LEDs draw and how warm the phone gets, …" -->
-    <string name="bench_body">バッテリーの計測値を使って、LED の消費電力と端末の温度上昇を測定します。充電器を外し、ケースから出して、室温のテーブルに画面を下にして置いてください（通常の使い方と同じく LED が上を向きます）。ビープ音が鳴ったらカメラバーを測定し、端末を裏返して値を入力してください。</string>
+    <string name="bench_body">バッテリーの計測値を使って、LED の消費電力と端末の温度上昇を測定します。充電器を外し、ケースから出して、室温のテーブルに画面を下にして置いてください（通常の使い方と同じく LED が上を向きます）。LED が青くなったらカメラバーを測定し、端末を裏返して値を入力してください。</string>
     <!-- "Unplug the charger first: …" -->
     <string name="bench_unplug">先に充電器を外してください。充電中は LED の消費電力が分からず、充電自体の熱も加わります。</string>
     <!-- "This phone does not report battery current, so only the heat test is available." -->
@@ -38,7 +38,7 @@
     <!-- "Heat test" -->
     <string name="bench_heat_title">温度テスト</string>
     <!-- "15 seconds of baseline, then 10 minutes of full white. …" -->
-    <string name="bench_heat_body">15 秒間の基準測定のあと、白を最大で 10 分間点灯します。9:30 に LED が 3 秒間アンバーになるので準備し、10:00 に 2 秒間青くなったらカメラバーを測定して入力してください（通常の制限での測定では、その時点で LED が休止している場合があるためビープ音で知らせます）。バッテリーが 42 °C に達するか、Android が熱の警告を出すと途中で停止します。その後、端末が冷えるまで待ってから次の測定に進みます。</string>
+    <string name="bench_heat_body">15 秒間の基準測定のあと、白を最大で 10 分間点灯します。音は鳴りません。9:30 に LED が 3 秒間アンバーになるので準備し、10:00 に 2 秒間青くなったらカメラバーを測定して入力してください。青の合図の前に LED が消えた場合は、安全のため途中で停止しています（バッテリー 42 °C または Android の熱警告）。端末が冷えると LED が緑に点滅し、次の測定に進めます。</string>
     <!-- "Full white, dimming off" -->
     <string name="bench_run_no_dimming">白 最大、減光オフ</string>
     <!-- "Full white, normal limits" -->
@@ -70,7 +70,7 @@
     <!-- "Cooling down · %1$s · battery %2$.1f °C (started at %3$.1f °C)" -->
     <string name="bench_cooling">冷却中 · %1$s · バッテリー %2$.1f °C（開始時 %3$.1f °C）</string>
     <!-- "Cooled down. Ready for the next run." -->
-    <string name="bench_ready">冷えました。次の測定を開始できます。</string>
+    <string name="bench_ready">冷えました（LED が緑に点滅しました）。次の測定を開始できます。</string>
     <!-- "Results" -->
     <string name="bench_results">結果</string>
     <!-- "Run %1$d · %2$s · bar %3$s · battery +%4$s °C · LEDs %5$s · %6$s" -->
@@ -90,8 +90,13 @@
     <!-- "cancelled" -->
     <string name="bench_stop_cancelled">中止</string>
     <!-- "Keep HiLight open on this screen during a run; …" -->
-    <string name="bench_keep_open">測定中は HiLight のこの画面を開いたままにしてください。発熱を抑えるため、画面は自動で暗くなります。</string>
+    <string name="bench_keep_open">測定中は HiLight のこの画面を開いたままにしてください。画面は真っ黒になり、光や熱をほとんど加えません。タップするとタイマーが表示されます。</string>
     <!-- "Share LED test results" -->
     <string name="bench_export_chooser">LED テスト結果を共有</string>
+
+    <!-- "Camera bar now °C (optional, before starting)" -->
+    <string name="bench_start_surface_field">開始前のカメラバーの温度 °C（任意）</string>
+    <!-- "The screen stays black so it adds no light or heat." -->
+    <string name="bench_blackout_hint">光や熱を加えないよう、画面は黒いままです。</string>
 
 </resources>

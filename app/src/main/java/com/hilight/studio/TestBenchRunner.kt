@@ -3,8 +3,6 @@ package com.hilight.studio
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.media.AudioManager
-import android.media.ToneGenerator
 import android.os.BatteryManager
 import android.os.Handler
 import android.os.PowerManager
@@ -17,7 +15,7 @@ import org.json.JSONObject
 
 /**
  * Drives the [TestBench] plans on the main thread: sends LED frames through [Store], reads the
- * battery and thermal sensors, beeps at the ten-minute mark, then watches the phone cool down.
+ * battery and thermal sensors, cues the ten-minute mark on the LEDs, then watches the phone cool down.
  *
  * Every frame is a Test-style preview, so leaving the app ends a run (it is then recorded as
  * interrupted) and the LEDs go dark within one held frame even if this process stops.
@@ -64,6 +62,7 @@ class TestBenchRunner internal constructor(
     private var voltages = mutableListOf<Int>()
 
     private var runStartedEpoch = 0L
+    private var runSurfaceStartC: Double? = null
     private var runStartedElapsed = 0L
     private var soakStartedElapsed = 0L
     private var lastFrameSent = 0L
@@ -133,7 +132,7 @@ class TestBenchRunner internal constructor(
 
     // ------------------------------------------------------------------ heat test
 
-    fun startHeat(type: TestBench.HeatRunType): Start {
+    fun startHeat(type: TestBench.HeatRunType, surfaceStartC: Double? = null): Start {
         if (_ui.value.phase !in setOf(Phase.IDLE, Phase.COOLING)) return Start.Ok
         if (isPlugged()) return Start.Plugged
         store.previewSuppressionReason()?.let { return Start.Blocked(it) }
@@ -142,6 +141,7 @@ class TestBenchRunner internal constructor(
         samples = mutableListOf()
         lastSample = null
         lastLogged = Long.MIN_VALUE
+        runSurfaceStartC = surfaceStartC
         runStartedEpoch = System.currentTimeMillis()
         runStartedElapsed = SystemClock.elapsedRealtime()
         lastFrameSent = runStartedElapsed
@@ -189,9 +189,7 @@ class TestBenchRunner internal constructor(
                 resendIfDue(now, if (type.lit) WHITE else DARK, type.experiment)
                 val getReady = elapsed >= TestBench.SOAK_MS - TestBench.WARNING_BEFORE_MS
                 if (getReady && !ui.getReady) {
-                    // Normal limits may have the LEDs resting by now, so a colour cue could not show.
-                    if (type == TestBench.HeatRunType.NORMAL_LIMITS) beep(short = true)
-                    else showCue(CUE_GET_READY, CUE_GET_READY_MS, back = if (type.lit) WHITE else DARK)
+                    showCue(CUE_GET_READY, CUE_GET_READY_MS, back = if (type.lit) WHITE else DARK)
                 }
                 _ui.value = ui.copy(
                     soakElapsedMs = elapsed,
@@ -226,28 +224,27 @@ class TestBenchRunner internal constructor(
         val type = _ui.value.runType
         lastSample?.let { if (samples.lastOrNull() !== it) samples += it }
         _ui.value = _ui.value.copy(phase = Phase.MEASURE, pendingStop = reason, getReady = false)
-        // A completed run says "measure now" with a short blue cue on the LEDs themselves. Early
-        // safety stops and normal-limits runs beep instead: the LEDs must go dark at once, or may be
-        // resting under the normal limits.
-        if (reason == TestBench.StopReason.COMPLETED && type != null && type != TestBench.HeatRunType.NORMAL_LIMITS) {
+        // A completed run says "measure now" with a short blue cue on the LEDs themselves. An early
+        // safety stop goes dark at once instead: LEDs going dark before the blue cue is the signal.
+        if (reason == TestBench.StopReason.COMPLETED && type != null) {
             showCue(CUE_MEASURE, CUE_MEASURE_MS, back = if (keepLit) WHITE else null)
         } else {
-            if (!keepLit) store.stopBenchOutput()
-            beep(short = false)
+            store.stopBenchOutput()
         }
         if (keepLit) schedule(TestBench.HEAT_SAMPLE_MS) { heatTick() }
     }
 
     /**
      * Shows [colour] on every LED for [ms], then returns to [back], or turns the LEDs off when
-     * [back] is null. Falls back to a beep if the frame cannot be shown.
+     * [back] is null.
+     *
+     * The cue frames themselves use the experiment allowance, so they show even in a normal-limits
+     * run whose LEDs are resting under the duty limit at that moment. That is a few seconds of light
+     * per run; the run's own frames keep the run's own limits.
      */
     private fun showCue(colour: Int, ms: Long, back: List<Int>?) {
         val type = _ui.value.runType ?: return
-        if (!store.showBenchFrame(List(LED_COUNT) { colour }, HOLD_MS, type.experiment, first = false)) {
-            beep(short = false)
-            return
-        }
+        if (!store.showBenchFrame(List(LED_COUNT) { colour }, HOLD_MS, experiment = true, first = false)) return
         lastFrameSent = SystemClock.elapsedRealtime()
         cancelCue()
         val r = Runnable {
@@ -311,7 +308,9 @@ class TestBenchRunner internal constructor(
         cancelCue()
         store.stopBenchOutput()
         val type = _ui.value.runType ?: return
-        val run = TestBench.HeatRun(type, runStartedEpoch, samples.toList(), reason, surfaceC, note.trim().take(200))
+        val run = TestBench.HeatRun(
+            type, runStartedEpoch, samples.toList(), reason, surfaceC, note.trim().take(200), runSurfaceStartC,
+        )
         _runs.value = (_runs.value + run).takeLast(MAX_RUNS)
         saveRuns(_runs.value)
         coolEndedElapsed = SystemClock.elapsedRealtime()
@@ -325,7 +324,7 @@ class TestBenchRunner internal constructor(
         val since = SystemClock.elapsedRealtime() - coolEndedElapsed
         val start = _ui.value.coolStartC ?: c
         val cooled = TestBench.cooledDown(start, c, since)
-        if (cooled && !_ui.value.cooled) beep(short = true)
+        if (cooled && !_ui.value.cooled) flashReady()
         _ui.value = _ui.value.copy(batteryC = c, coolSinceMs = since, cooled = cooled)
         if (!cooled) schedule(COOL_TICK_MS) { coolTick() }
     }
@@ -376,14 +375,10 @@ class TestBenchRunner internal constructor(
     private fun batteryIntent(): Intent? =
         app.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
-    private fun beep(short: Boolean) {
-        runCatching {
-            val tone = ToneGenerator(AudioManager.STREAM_ALARM, 90)
-            tone.startTone(
-                if (short) ToneGenerator.TONE_PROP_BEEP else ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD,
-                if (short) 200 else 1_500,
-            )
-            main.postDelayed({ tone.release() }, 2_000)
+    /** Two seconds of green on the LEDs: cooled down, ready for the next run. No sound. */
+    private fun flashReady() {
+        if (store.showBenchFrame(List(LED_COUNT) { CUE_READY }, CUE_READY_MS.toInt() + 1_000, experiment = false, first = true)) {
+            main.postDelayed({ if (store.benchOwnsOutput()) store.stopBenchOutput() }, CUE_READY_MS)
         }
     }
 
@@ -437,6 +432,9 @@ class TestBenchRunner internal constructor(
         /** Blue at the ten-minute mark: measure now. */
         val CUE_MEASURE = 0xFF2979FF.toInt()
         const val CUE_MEASURE_MS = 2_000L
+        /** Green when the phone has cooled down: ready for the next run. */
+        val CUE_READY = 0xFF00E676.toInt()
+        const val CUE_READY_MS = 2_000L
         /** Each frame is held this long and resent every [RESEND_MS], inside the one-minute alert cap. */
         const val HOLD_MS = 55_000
         const val RESEND_MS = 45_000L
