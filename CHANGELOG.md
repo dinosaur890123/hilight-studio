@@ -39,7 +39,7 @@ All notable changes to HiLight Studio are documented here.
   effects, rules, the compass and per-LED colours follow the real ring; without a map output is
   unchanged. Renderer implementation revision is now 11.
 - The compass, breathing guide, shake for sparkles and the LED map now live on a new **Extras** tab.
-- Added a **demo reel** on the Extras tab: a 41-second light show through nine effects. Each scene
+- Added a **demo reel** on the Extras tab: a 40-second light show through nine effects. Each scene
   opens with a short dark gap and fades in and out, so the show stays at full brightness without
   any change to the safety limits.
 - Added a **party pack**: spin the wheel (a light races round the ring and stops on one LED) and a
