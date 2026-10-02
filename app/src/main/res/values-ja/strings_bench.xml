@@ -28,13 +28,13 @@
     <!-- "Blue, all 8" -->
     <string name="bench_step_blue">青、8 個すべて</string>
     <!-- "White 25%, all 8" -->
-    <string name="bench_step_white_25">白 25%、8 個すべて</string>
+    <string name="bench_step_white_25" formatted="false">白 25%、8 個すべて</string>
     <!-- "White 50%, all 8" -->
-    <string name="bench_step_white_50">白 50%、8 個すべて</string>
+    <string name="bench_step_white_50" formatted="false">白 50%、8 個すべて</string>
     <!-- "White 100%, all 8" -->
-    <string name="bench_step_white_100">白 100%、8 個すべて</string>
+    <string name="bench_step_white_100" formatted="false">白 100%、8 個すべて</string>
     <!-- "White 100%, one LED" -->
-    <string name="bench_step_one_led">白 100%、LED 1 個</string>
+    <string name="bench_step_one_led" formatted="false">白 100%、LED 1 個</string>
     <!-- "Heat test" -->
     <string name="bench_heat_title">温度テスト</string>
     <!-- "15 seconds of baseline, then 10 minutes of full white. …" -->
