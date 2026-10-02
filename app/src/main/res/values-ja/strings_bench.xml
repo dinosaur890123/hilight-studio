@@ -38,7 +38,7 @@
     <!-- "Heat test" -->
     <string name="bench_heat_title">温度テスト</string>
     <!-- "15 seconds of baseline, then 10 minutes of full white. …" -->
-    <string name="bench_heat_body">15 秒間の基準測定のあと、白を最大で 10 分間点灯します。10 分の時点でビープ音が鳴るので、カメラバーを測定して入力してください。バッテリーが 42 °C に達するか、Android が熱の警告を出すと途中で停止します。その後、端末が冷えるまで待ってから次の測定に進みます。</string>
+    <string name="bench_heat_body">15 秒間の基準測定のあと、白を最大で 10 分間点灯します。9:30 に LED が 3 秒間アンバーになるので準備し、10:00 に 2 秒間青くなったらカメラバーを測定して入力してください（通常の制限での測定では、その時点で LED が休止している場合があるためビープ音で知らせます）。バッテリーが 42 °C に達するか、Android が熱の警告を出すと途中で停止します。その後、端末が冷えるまで待ってから次の測定に進みます。</string>
     <!-- "Full white, dimming off" -->
     <string name="bench_run_no_dimming">白 最大、減光オフ</string>
     <!-- "Full white, normal limits" -->
@@ -54,7 +54,7 @@
     <!-- "Measuring the baseline with the LEDs off…" -->
     <string name="bench_baseline">LED を消灯した状態で基準を測定中…</string>
     <!-- "30 seconds to go. Get your thermometer ready." -->
-    <string name="bench_get_ready">残り 30 秒です。温度計を用意してください。</string>
+    <string name="bench_get_ready">残り 30 秒です（LED がアンバーに点灯しました）。温度計を用意してください。</string>
     <!-- "Measure the camera bar now" -->
     <string name="bench_measure_now">今すぐカメラバーを測定してください</string>
     <!-- "The LEDs stay on for up to one more minute while you measure." -->

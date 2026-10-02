@@ -55,8 +55,9 @@ All notable changes to HiLight Studio are documented here.
 - Added an **LED test bench** on the Extras tab. A 75-second power test measures each colour's draw
   from the battery's own current and voltage against dark steps either side. A heat run logs battery
   temperature, current and Android's thermal status for 10 minutes of full white (or a control run
-  with the LEDs off), beeps at the 10-minute mark for a camera-bar reading, then waits for the phone
-  to cool. Results export as CSV. Runs stop early at 42 °C battery or an Android heat warning.
+  with the LEDs off). The LEDs turn amber 30 seconds before the 10-minute mark and blue at it, when
+  you measure the camera bar and enter the reading (the normal-limits run beeps instead), then it
+  waits for the phone to cool. Results export as CSV. Runs stop early at 42 °C battery or an Android heat warning.
 - The renderer has a bounded **experiment allowance** for the bench's "dimming off" run only: a
   user-started test-bench preview may skip the taper and duty rest for at most 11 minutes of light,
   refilled only after 15 minutes without experiment frames. Everything else is limited exactly as

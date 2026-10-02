@@ -58,6 +58,7 @@ class TestBenchRunner internal constructor(
     val runs: StateFlow<List<TestBench.HeatRun>> = _runs.asStateFlow()
 
     private var tick: Runnable? = null
+    private var cueRestore: Runnable? = null
     private var stepStarted = 0L
     private var stepCurrents = mutableListOf<MutableList<Int>>()
     private var voltages = mutableListOf<Int>()
@@ -176,7 +177,6 @@ class TestBenchRunner internal constructor(
                 }
                 lastFrameSent = now
                 _ui.value = ui.copy(phase = Phase.SOAK, soakElapsedMs = 0)
-                beep(short = true)
             } else {
                 resendIfDue(now, DARK, experiment = false)
             }
@@ -188,7 +188,11 @@ class TestBenchRunner internal constructor(
                 }
                 resendIfDue(now, if (type.lit) WHITE else DARK, type.experiment)
                 val getReady = elapsed >= TestBench.SOAK_MS - TestBench.WARNING_BEFORE_MS
-                if (getReady && !ui.getReady) beep(short = true)
+                if (getReady && !ui.getReady) {
+                    // Normal limits may have the LEDs resting by now, so a colour cue could not show.
+                    if (type == TestBench.HeatRunType.NORMAL_LIMITS) beep(short = true)
+                    else showCue(CUE_GET_READY, CUE_GET_READY_MS, back = if (type.lit) WHITE else DARK)
+                }
                 _ui.value = ui.copy(
                     soakElapsedMs = elapsed,
                     batteryC = sample.batteryC,
@@ -212,17 +216,57 @@ class TestBenchRunner internal constructor(
     }
 
     private fun resendIfDue(now: Long, frame: List<Int>, experiment: Boolean) {
+        if (cueRestore != null) return
         if (now - lastFrameSent >= RESEND_MS && store.showBenchFrame(frame, HOLD_MS, experiment, first = false)) {
             lastFrameSent = now
         }
     }
 
     private fun promptMeasure(reason: TestBench.StopReason, keepLit: Boolean) {
-        if (!keepLit) store.stopBenchOutput()
+        val type = _ui.value.runType
         lastSample?.let { if (samples.lastOrNull() !== it) samples += it }
         _ui.value = _ui.value.copy(phase = Phase.MEASURE, pendingStop = reason, getReady = false)
-        beep(short = false)
+        // A completed run says "measure now" with a short blue cue on the LEDs themselves. Early
+        // safety stops and normal-limits runs beep instead: the LEDs must go dark at once, or may be
+        // resting under the normal limits.
+        if (reason == TestBench.StopReason.COMPLETED && type != null && type != TestBench.HeatRunType.NORMAL_LIMITS) {
+            showCue(CUE_MEASURE, CUE_MEASURE_MS, back = if (keepLit) WHITE else null)
+        } else {
+            if (!keepLit) store.stopBenchOutput()
+            beep(short = false)
+        }
         if (keepLit) schedule(TestBench.HEAT_SAMPLE_MS) { heatTick() }
+    }
+
+    /**
+     * Shows [colour] on every LED for [ms], then returns to [back], or turns the LEDs off when
+     * [back] is null. Falls back to a beep if the frame cannot be shown.
+     */
+    private fun showCue(colour: Int, ms: Long, back: List<Int>?) {
+        val type = _ui.value.runType ?: return
+        if (!store.showBenchFrame(List(LED_COUNT) { colour }, HOLD_MS, type.experiment, first = false)) {
+            beep(short = false)
+            return
+        }
+        lastFrameSent = SystemClock.elapsedRealtime()
+        cancelCue()
+        val r = Runnable {
+            cueRestore = null
+            if (back == null) {
+                if (store.benchOwnsOutput()) store.stopBenchOutput()
+            } else if (_ui.value.phase == Phase.SOAK || _ui.value.phase == Phase.MEASURE) {
+                if (store.showBenchFrame(back, HOLD_MS, type.experiment, first = false)) {
+                    lastFrameSent = SystemClock.elapsedRealtime()
+                }
+            }
+        }
+        cueRestore = r
+        main.postDelayed(r, ms)
+    }
+
+    private fun cancelCue() {
+        cueRestore?.let { main.removeCallbacks(it) }
+        cueRestore = null
     }
 
     /** Records the surface reading (or none) and moves on to cooling down. */
@@ -257,12 +301,14 @@ class TestBenchRunner internal constructor(
 
     private fun endHeat(reason: TestBench.StopReason) {
         cancelTick()
+        cancelCue()
         store.stopBenchOutput()
         if (samples.size >= 2) finishRun(reason, null, "") else _ui.value = Ui()
     }
 
     private fun finishRun(reason: TestBench.StopReason, surfaceC: Double?, note: String) {
         cancelTick()
+        cancelCue()
         store.stopBenchOutput()
         val type = _ui.value.runType ?: return
         val run = TestBench.HeatRun(type, runStartedEpoch, samples.toList(), reason, surfaceC, note.trim().take(200))
@@ -385,6 +431,12 @@ class TestBenchRunner internal constructor(
     private companion object {
         val DARK = List(LED_COUNT) { 0xFF000000.toInt() }
         val WHITE = List(LED_COUNT) { 0xFFFFFFFF.toInt() }
+        /** Amber 30 seconds before the mark: get the thermometer ready. */
+        val CUE_GET_READY = 0xFFFFAB00.toInt()
+        const val CUE_GET_READY_MS = 3_000L
+        /** Blue at the ten-minute mark: measure now. */
+        val CUE_MEASURE = 0xFF2979FF.toInt()
+        const val CUE_MEASURE_MS = 2_000L
         /** Each frame is held this long and resent every [RESEND_MS], inside the one-minute alert cap. */
         const val HOLD_MS = 55_000
         const val RESEND_MS = 45_000L
