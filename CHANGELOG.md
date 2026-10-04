@@ -4,6 +4,10 @@ All notable changes to HiLight Studio are documented here.
 
 ## Unreleased
 
+- The bottom navigation is now a floating Material 3 Expressive pill. The selected tab widens on a
+  spring to show its label in a contrasting pill, its icon pops, and the other tabs shrink to icons.
+  The bar slides away while scrolling down and returns on the way back up, and content scrolls on
+  beneath it.
 - Added five colour effects: **Aurora** and **Crossfade** blend two colours, **Marquee** slides
   two-colour bands along the array, **Twinkle** sparkles each LED on its own rhythm, and **Candle**
   flickers like a flame. The preview matches the LEDs frame for frame. Renderer implementation
