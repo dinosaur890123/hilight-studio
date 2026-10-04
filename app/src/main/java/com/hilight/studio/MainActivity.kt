@@ -13,9 +13,12 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -32,8 +35,6 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -50,6 +51,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
@@ -116,6 +118,8 @@ private fun App(store: Store, startInSetup: Boolean = false) {
     val active by store.activeTransport.collectAsStateWithLifecycle()
     val haptics = LocalHapticFeedback.current
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val navScroll = rememberFloatingNavScrollState()
+    val layoutDirection = LocalLayoutDirection.current
 
     // Tied to the lifecycle, not just the composition: a plain LaunchedEffect keeps its coroutine
     // running once the activity stops, so this polled the helper over binder and file I/O every 1.5s
@@ -131,7 +135,9 @@ private fun App(store: Store, startInSetup: Boolean = false) {
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection)
+            .nestedScroll(navScroll),
         topBar = {
             // single-line bar: the hero already carries the visual weight
             TopAppBar(
@@ -165,51 +171,55 @@ private fun App(store: Store, startInSetup: Boolean = false) {
                 scrollBehavior = scrollBehavior,
             )
         },
-        bottomBar = {
-            NavigationBar {
-                Tab.entries.forEach { t ->
-                    NavigationBarItem(
-                        selected = tab == t,
-                        onClick = {
-                            if (tab != t) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            tabIndex = t.ordinal
-                        },
-                        icon = { Icon(t.icon, contentDescription = stringResource(t.labelRes)) },
-                        label = { Text(stringResource(t.labelRes)) },
-                        alwaysShowLabel = true,
-                    )
-                }
-            }
-        },
     ) { pad ->
-        // tabs slide in the direction of travel, like the system's pagers
-        AnimatedContent(
-            targetState = tab,
-            transitionSpec = {
-                val forward = targetState.ordinal > initialState.ordinal
-                val dir = if (forward) 1 else -1
-                (slideInHorizontally(tween(320)) { w -> dir * w / 8 } + fadeIn(tween(220)))
-                    .togetherWith(
-                        slideOutHorizontally(tween(320)) { w -> -dir * w / 8 } + fadeOut(tween(160))
-                    )
-            },
-            label = "tab",
-            modifier = Modifier.padding(pad),
-        ) { current ->
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                when (current) {
-                    Tab.LIVE -> LiveScreen(store)
-                    Tab.AMBIENT -> AmbientScreen(store)
-                    Tab.APPS -> AppRulesScreen(store)
-                    Tab.EXTRAS -> ExtrasScreen(store)
-                    Tab.SETUP -> SetupScreen(store)
+        // no bottomBar slot: the navigation floats over the content, which scrolls on beneath it
+        Box(Modifier.fillMaxSize()) {
+            // tabs slide in the direction of travel, like the system's pagers
+            AnimatedContent(
+                targetState = tab,
+                transitionSpec = {
+                    val forward = targetState.ordinal > initialState.ordinal
+                    val dir = if (forward) 1 else -1
+                    (slideInHorizontally(tween(320)) { w -> dir * w / 8 } + fadeIn(tween(220)))
+                        .togetherWith(
+                            slideOutHorizontally(tween(320)) { w -> -dir * w / 8 } + fadeOut(tween(160))
+                        )
+                },
+                label = "tab",
+                modifier = Modifier.padding(
+                    start = pad.calculateStartPadding(layoutDirection),
+                    top = pad.calculateTopPadding(),
+                    end = pad.calculateEndPadding(layoutDirection),
+                ),
+            ) { current ->
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState()),
+                ) {
+                    when (current) {
+                        Tab.LIVE -> LiveScreen(store)
+                        Tab.AMBIENT -> AmbientScreen(store)
+                        Tab.APPS -> AppRulesScreen(store)
+                        Tab.EXTRAS -> ExtrasScreen(store)
+                        Tab.SETUP -> SetupScreen(store)
+                    }
+                    Spacer(Modifier.height(pad.calculateBottomPadding() + FloatingNavBarClearance))
                 }
-                Spacer(Modifier.height(28.dp))
             }
+            FloatingNavBar(
+                items = Tab.entries.map { FloatingNavItem(stringResource(it.labelRes), it.icon) },
+                selectedIndex = tab.ordinal,
+                onSelect = { i ->
+                    if (i != tabIndex) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                    tabIndex = i
+                    navScroll.show()
+                },
+                visible = navScroll.visible,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = pad.calculateBottomPadding() + FloatingNavBarMargin),
+            )
         }
     }
 }
